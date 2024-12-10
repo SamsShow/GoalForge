@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ethers } from 'ethers';
 import { contractAddress } from '@/config/contractAddress';
 import abi from '@/config/abi.json';
+import { CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react';
 
 export default function Goals() {
     const { address } = useAccount();
@@ -45,48 +46,62 @@ export default function Goals() {
 
     return (
         <Layout>
-            <h1 className="text-3xl font-bold mb-8">My Goals</h1>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {goals.map((goal, index) => (
-                    <Card key={index}>
-                        <CardHeader>
-                            <CardTitle>{goal.title}</CardTitle>
-                            <CardDescription>{goal.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-2">
-                                <p>
-                                    <span className="font-semibold">Stake:</span>{' '}
-                                    {ethers.formatEther(goal.stake)} AVAX
-                                </p>
-                                <p>
-                                    <span className="font-semibold">Status:</span>{' '}
-                                    {goal.completed ? 'Completed' : goal.verified ? 'Failed' : 'In Progress'}
-                                </p>
-                                <p>
-                                    <span className="font-semibold">End Date:</span>{' '}
-                                    {new Date(Number(goal.endDate) * 1000).toLocaleDateString()}
-                                </p>
-                            </div>
-                        </CardContent>
-                        {!goal.verified && new Date() >= new Date(Number(goal.endDate) * 1000) && (
-                            <CardFooter className="gap-2">
-                                <Button 
-                                    onClick={() => verifyGoal({ args: [address, index] })}
-                                    variant="default"
-                                >
-                                    Verify Success
-                                </Button>
-                                <Button 
-                                    onClick={() => failGoal({ args: [address, index] })}
-                                    variant="destructive"
-                                >
-                                    Mark Failed
-                                </Button>
-                            </CardFooter>
-                        )}
-                    </Card>
-                ))}
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <h1 className="text-3xl font-bold">My Goals</h1>
+                    <Button variant="secondary">Filter</Button>
+                </div>
+
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {goals.map((goal, index) => (
+                        <Card key={index} className="bg-card/50 backdrop-blur border-border/50">
+                            <CardHeader>
+                                <CardTitle className="flex items-center justify-between">
+                                    {goal.title}
+                                    {goal.completed ? (
+                                        <CheckCircle className="h-5 w-5 text-success" />
+                                    ) : goal.verified ? (
+                                        <XCircle className="h-5 w-5 text-error" />
+                                    ) : (
+                                        <Clock className="h-5 w-5 text-warning" />
+                                    )}
+                                </CardTitle>
+                                <CardDescription>{goal.description}</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">Stake</span>
+                                        <span className="font-medium">{ethers.formatEther(goal.stake)} AVAX</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-muted-foreground">End Date</span>
+                                        <span className="font-medium">
+                                            {new Date(Number(goal.endDate) * 1000).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                            {!goal.verified && new Date() >= new Date(Number(goal.endDate) * 1000) && (
+                                <CardFooter className="gap-2">
+                                    <Button 
+                                        onClick={() => verifyGoal({ args: [address, index] })}
+                                        className="w-full"
+                                    >
+                                        Verify Success
+                                    </Button>
+                                    <Button 
+                                        onClick={() => failGoal({ args: [address, index] })}
+                                        variant="destructive"
+                                        className="w-full"
+                                    >
+                                        Mark Failed
+                                    </Button>
+                                </CardFooter>
+                            )}
+                        </Card>
+                    ))}
+                </div>
             </div>
         </Layout>
     );

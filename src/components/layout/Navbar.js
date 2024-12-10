@@ -3,24 +3,54 @@
 import Link from 'next/link';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Button } from '../ui/button';
+import { Search, Plus, Bell, Menu, LayoutDashboard } from 'lucide-react';
 
 export default function Navbar() {
     return (
-        <nav className="bg-white shadow-lg">
-            <div className="container mx-auto px-4">
-                <div className="flex justify-between items-center h-16">
-                    <Link href="/" className="text-xl font-bold">
-                        GoalForge
-                    </Link>
+        <nav className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container mx-auto px-6">
+                <div className="flex h-16 items-center justify-between">
+                    <div className="flex items-center gap-8">
+                        <Link href="/" className="text-xl font-bold text-primary">
+                            GoalForge
+                        </Link>
+                        
+                        <div className="hidden md:flex items-center gap-2 bg-secondary/50 rounded-full px-4 py-1.5">
+                            <Search className="h-4 w-4 text-muted-foreground" />
+                            <input 
+                                type="search" 
+                                placeholder="Search goals..."
+                                className="bg-transparent border-none focus:outline-none text-sm w-64"
+                            />
+                        </div>
+                    </div>
 
                     <div className="flex items-center gap-4">
-                        <Link href="/goals">
-                            <Button variant="ghost">My Goals</Button>
+                        <Link href="/dashboard">
+                            <Button variant="ghost" size="icon" className="text-muted-foreground">
+                                <LayoutDashboard className="h-5 w-5" />
+                            </Button>
                         </Link>
+                        
                         <Link href="/create">
-                            <Button variant="ghost">Create Goal</Button>
+                            <Button variant="secondary" size="sm" className="gap-2">
+                                <Plus className="h-4 w-4" />
+                                New Goal
+                            </Button>
                         </Link>
-                        <ConnectButton />
+                        
+                        <Button variant="ghost" size="icon" className="text-muted-foreground">
+                            <Bell className="h-5 w-5" />
+                        </Button>
+                        
+                        <ConnectButton 
+                            chainStatus="icon"
+                            showBalance={false}
+                        />
+                        
+                        <Button variant="ghost" size="icon" className="md:hidden">
+                            <Menu className="h-5 w-5" />
+                        </Button>
                     </div>
                 </div>
             </div>

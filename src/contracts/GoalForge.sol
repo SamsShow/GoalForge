@@ -3,6 +3,8 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./GoalForgeNFT.sol";
+import "./IGoalForgeTypes.sol";
 
 contract GoalForge is ERC20, Ownable {
     struct Goal {
@@ -11,126 +13,136 @@ contract GoalForge is ERC20, Ownable {
         uint256 startDate;
         uint256 endDate;
         uint256 stake;
+        uint256 progress;
+        uint256 livesLeft;
         bool completed;
         bool verified;
-        address[] verifiers;
+        IGoalForgeTypes.HabitType habitType;
+        string username;
+        uint256 totalDays;
+        uint256 currentStreak;
     }
 
+    GoalForgeNFT public nftContract;
     mapping(address => Goal[]) public userGoals;
     mapping(address => uint256) public userStakes;
-    uint256 public rewardRate = 10; // 10% reward for completed goals
 
-    event GoalCreated(address indexed user, uint256 goalIndex, string title, uint256 stake);
-    event GoalVerified(address indexed user, uint256 goalIndex, bool completed);
-    event RewardRateUpdated(uint256 newRate);
+    event GoalCreated(
+        address indexed user, 
+        uint256 goalIndex, 
+        string title, 
+        uint256 stake,
+        IGoalForgeTypes.HabitType habitType
+    );
+    event GoalProgress(
+        address indexed user, 
+        uint256 goalIndex, 
+        uint256 progress
+    );
 
-    constructor() ERC20("GoalForge", "GOAL") Ownable(msg.sender) {
+    constructor(address _nftContract) 
+        ERC20("GoalForge", "GOAL") 
+        Ownable(msg.sender) 
+    {
+        nftContract = GoalForgeNFT(_nftContract);
         _mint(msg.sender, 1000000 * 10**decimals());
     }
 
-    function createGoal(
-        string memory _title,
-        string memory _description,
-        uint256 _endDate,
+    function createHabit(
+        IGoalForgeTypes.HabitType _habitType,
+        uint256 _days,
+        uint256 _lives,
         uint256 _stake,
-        address[] memory _verifiers
+        string memory _username
     ) external {
-        require(bytes(_title).length > 0, "Title cannot be empty");
-        require(_endDate > block.timestamp, "End date must be in the future");
+        require(_days > 0, "Days must be greater than 0");
+        require(_lives <= 5, "Maximum 5 lives allowed");
         require(_stake > 0, "Stake must be greater than 0");
-        require(_verifiers.length > 0, "Must have at least one verifier");
         require(balanceOf(msg.sender) >= _stake, "Insufficient balance");
 
-        // Transfer stake to contract
+        string memory title = getHabitTitle(_habitType);
+        
         _transfer(msg.sender, address(this), _stake);
         userStakes[msg.sender] += _stake;
 
         Goal memory newGoal = Goal({
-            title: _title,
-            description: _description,
+            title: title,
+            description: getHabitDescription(_habitType),
             startDate: block.timestamp,
-            endDate: _endDate,
+            endDate: block.timestamp + (_days * 1 days),
             stake: _stake,
+            progress: 0,
+            livesLeft: _lives,
             completed: false,
             verified: false,
-            verifiers: _verifiers
+            habitType: _habitType,
+            username: _username,
+            totalDays: _days,
+            currentStreak: 0
         });
 
         userGoals[msg.sender].push(newGoal);
-        emit GoalCreated(msg.sender, userGoals[msg.sender].length - 1, _title, _stake);
+        emit GoalCreated(msg.sender, userGoals[msg.sender].length - 1, title, _stake, _habitType);
     }
 
-    function verifyGoal(address _user, uint256 _goalIndex) external {
-        require(_goalIndex < userGoals[_user].length, "Invalid goal index");
-        Goal storage goal = userGoals[_user][_goalIndex];
-        
-        bool isVerifier = false;
-        for (uint i = 0; i < goal.verifiers.length; i++) {
-            if (goal.verifiers[i] == msg.sender) {
-                isVerifier = true;
-                break;
+    function checkInHabit(uint256 _goalIndex, bool _completed) external {
+        require(_goalIndex < userGoals[msg.sender].length, "Invalid goal index");
+        Goal storage goal = userGoals[msg.sender][_goalIndex];
+        require(!goal.completed, "Goal already completed");
+        require(block.timestamp <= goal.endDate, "Goal period finished");
+
+        if (_completed) {
+            goal.progress += 1;
+            goal.currentStreak += 1;
+            emit GoalProgress(msg.sender, _goalIndex, goal.progress);
+
+            if (goal.progress >= goal.totalDays) {
+                completeGoal(msg.sender, _goalIndex);
             }
+        } else if (goal.livesLeft > 0) {
+            goal.livesLeft -= 1;
+        } else {
+            failGoal(msg.sender, _goalIndex);
         }
-        
-        require(isVerifier, "Not authorized to verify");
-        require(!goal.verified, "Goal already verified");
-        require(block.timestamp >= goal.endDate, "Goal period not finished");
+    }
 
-        goal.verified = true;
+    function completeGoal(address _user, uint256 _goalIndex) internal {
+        Goal storage goal = userGoals[_user][_goalIndex];
         goal.completed = true;
+        goal.verified = true;
 
-        // Calculate and transfer reward
-        uint256 reward = (goal.stake * rewardRate) / 100;
-        _mint(_user, reward);
-        
-        // Return stake
         _transfer(address(this), _user, goal.stake);
         userStakes[_user] -= goal.stake;
 
-        emit GoalVerified(_user, _goalIndex, true);
+        nftContract.mint(_user, goal.habitType, goal.totalDays);
     }
 
-    function failGoal(address _user, uint256 _goalIndex) external {
-        require(_goalIndex < userGoals[_user].length, "Invalid goal index");
+    function failGoal(address _user, uint256 _goalIndex) internal {
         Goal storage goal = userGoals[_user][_goalIndex];
-        
-        bool isVerifier = false;
-        for (uint i = 0; i < goal.verifiers.length; i++) {
-            if (goal.verifiers[i] == msg.sender) {
-                isVerifier = true;
-                break;
-            }
-        }
-        
-        require(isVerifier, "Not authorized to verify");
-        require(!goal.verified, "Goal already verified");
-        require(block.timestamp >= goal.endDate, "Goal period not finished");
-
         goal.verified = true;
         goal.completed = false;
 
-        // Burn the stake
         _burn(address(this), goal.stake);
         userStakes[_user] -= goal.stake;
+    }
 
-        emit GoalVerified(_user, _goalIndex, false);
+    function getHabitTitle(IGoalForgeTypes.HabitType _type) internal pure returns (string memory) {
+        if (_type == IGoalForgeTypes.HabitType.CODING) return "Level Up Your Coding Skills!";
+        if (_type == IGoalForgeTypes.HabitType.DSA) return "Master DSA Skills";
+        if (_type == IGoalForgeTypes.HabitType.GYM) return "Gym Training Goal";
+        if (_type == IGoalForgeTypes.HabitType.YOGA) return "Daily Yoga Practice";
+        return "Running Challenge";
+    }
+
+    function getHabitDescription(IGoalForgeTypes.HabitType _type) internal pure returns (string memory) {
+        if (_type == IGoalForgeTypes.HabitType.CODING) return "Make daily GitHub contributions";
+        if (_type == IGoalForgeTypes.HabitType.DSA) return "Solve LeetCode problems daily";
+        if (_type == IGoalForgeTypes.HabitType.GYM) return "Daily gym workout session";
+        if (_type == IGoalForgeTypes.HabitType.YOGA) return "Complete daily yoga session";
+        return "Daily running goal";
     }
 
     function getUserGoals(address _user) external view returns (Goal[] memory) {
         return userGoals[_user];
-    }
-
-    function setRewardRate(uint256 _newRate) external onlyOwner {
-        require(_newRate <= 100, "Rate cannot exceed 100%");
-        rewardRate = _newRate;
-        emit RewardRateUpdated(_newRate);
-    }
-
-    // Added safety function to recover any accidentally sent tokens
-    function recoverTokens(address _token) external onlyOwner {
-        require(_token != address(this), "Cannot recover goal tokens");
-        uint256 balance = IERC20(_token).balanceOf(address(this));
-        require(balance > 0, "No tokens to recover");
-        IERC20(_token).transfer(owner(), balance);
     }
 } 

@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAccount, useContractWrite, usePrepareContractWrite } from 'wagmi';
-import { ethers } from 'ethers';
+import { useAccount, useWriteContract, useSimulateContract } from 'wagmi';
+import { parseEther } from 'viem';
 import Layout from '@/components/layout/Layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ export default function CreateGoal() {
         verifiers: '',
     });
 
-    const { config } = usePrepareContractWrite({
+    const { data: simulateData } = useSimulateContract({
         address: contractAddress,
         abi: abi,
         functionName: 'createGoal',
@@ -31,19 +31,19 @@ export default function CreateGoal() {
             formData.title,
             formData.description,
             Math.floor(new Date(formData.endDate).getTime() / 1000),
-            ethers.parseEther(formData.stake || '0'),
+            parseEther(formData.stake || '0'),
             formData.verifiers.split(',').map(v => v.trim()),
         ],
         enabled: Boolean(formData.title && formData.endDate && formData.stake && formData.verifiers),
     });
 
-    const { write } = useContractWrite(config);
+    const { writeContract, isLoading } = useWriteContract();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (write) {
+        if (simulateData?.request) {
             try {
-                await write();
+                await writeContract(simulateData.request);
                 router.push('/goals');
             } catch (error) {
                 console.error('Error creating goal:', error);
@@ -112,8 +112,12 @@ export default function CreateGoal() {
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button type="submit" disabled={!write}>
-                                Create Goal
+                            <Button 
+                                type="submit" 
+                                disabled={!simulateData?.request || isLoading}
+                                className="w-full"
+                            >
+                                {isLoading ? 'Creating...' : 'Create Goal'}
                             </Button>
                         </CardFooter>
                     </form>

@@ -26,18 +26,36 @@
 	{
 		"inputs": [
 			{
-				"internalType": "string",
-				"name": "_title",
-				"type": "string"
+				"internalType": "uint256",
+				"name": "_goalIndex",
+				"type": "uint256"
 			},
 			{
-				"internalType": "string",
-				"name": "_description",
-				"type": "string"
+				"internalType": "bool",
+				"name": "_completed",
+				"type": "bool"
+			}
+		],
+		"name": "checkInHabit",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "enum GoalForge.HabitType",
+				"name": "_habitType",
+				"type": "uint8"
 			},
 			{
 				"internalType": "uint256",
-				"name": "_endDate",
+				"name": "_days",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_lives",
 				"type": "uint256"
 			},
 			{
@@ -46,18 +64,24 @@
 				"type": "uint256"
 			},
 			{
-				"internalType": "address[]",
-				"name": "_verifiers",
-				"type": "address[]"
+				"internalType": "string",
+				"name": "_username",
+				"type": "string"
 			}
 		],
-		"name": "createGoal",
+		"name": "createHabit",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
-		"inputs": [],
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_nftContract",
+				"type": "address"
+			}
+		],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
 	},
@@ -151,24 +175,6 @@
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "_user",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_goalIndex",
-				"type": "uint256"
-			}
-		],
-		"name": "failGoal",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
 				"name": "owner",
 				"type": "address"
 			}
@@ -238,6 +244,12 @@
 				"internalType": "uint256",
 				"name": "stake",
 				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "enum GoalForge.HabitType",
+				"name": "habitType",
+				"type": "uint8"
 			}
 		],
 		"name": "GoalCreated",
@@ -260,12 +272,37 @@
 			},
 			{
 				"indexed": false,
-				"internalType": "bool",
-				"name": "completed",
-				"type": "bool"
+				"internalType": "uint256",
+				"name": "progress",
+				"type": "uint256"
 			}
 		],
-		"name": "GoalVerified",
+		"name": "GoalProgress",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "tokenId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "enum GoalForge.HabitType",
+				"name": "habitType",
+				"type": "uint8"
+			}
+		],
+		"name": "NFTMinted",
 		"type": "event"
 	},
 	{
@@ -288,47 +325,8 @@
 		"type": "event"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_token",
-				"type": "address"
-			}
-		],
-		"name": "recoverTokens",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"inputs": [],
 		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "newRate",
-				"type": "uint256"
-			}
-		],
-		"name": "RewardRateUpdated",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_newRate",
-				"type": "uint256"
-			}
-		],
-		"name": "setRewardRate",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -428,24 +426,6 @@
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "_user",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_goalIndex",
-				"type": "uint256"
-			}
-		],
-		"name": "verifyGoal",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
 				"name": "owner",
 				"type": "address"
 			},
@@ -536,6 +516,16 @@
 						"type": "uint256"
 					},
 					{
+						"internalType": "uint256",
+						"name": "progress",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "livesLeft",
+						"type": "uint256"
+					},
+					{
 						"internalType": "bool",
 						"name": "completed",
 						"type": "bool"
@@ -546,14 +536,48 @@
 						"type": "bool"
 					},
 					{
-						"internalType": "address[]",
-						"name": "verifiers",
-						"type": "address[]"
+						"internalType": "enum GoalForge.HabitType",
+						"name": "habitType",
+						"type": "uint8"
+					},
+					{
+						"internalType": "string",
+						"name": "username",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "totalDays",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "currentStreak",
+						"type": "uint256"
 					}
 				],
 				"internalType": "struct GoalForge.Goal[]",
 				"name": "",
 				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			}
+		],
+		"name": "getUserNFTs",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
 			}
 		],
 		"stateMutability": "view",
@@ -574,10 +598,10 @@
 	},
 	{
 		"inputs": [],
-		"name": "owner",
+		"name": "nftContract",
 		"outputs": [
 			{
-				"internalType": "address",
+				"internalType": "contract GoalForgeNFT",
 				"name": "",
 				"type": "address"
 			}
@@ -587,12 +611,12 @@
 	},
 	{
 		"inputs": [],
-		"name": "rewardRate",
+		"name": "owner",
 		"outputs": [
 			{
-				"internalType": "uint256",
+				"internalType": "address",
 				"name": "",
-				"type": "uint256"
+				"type": "address"
 			}
 		],
 		"stateMutability": "view",
@@ -665,6 +689,16 @@
 				"type": "uint256"
 			},
 			{
+				"internalType": "uint256",
+				"name": "progress",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "livesLeft",
+				"type": "uint256"
+			},
+			{
 				"internalType": "bool",
 				"name": "completed",
 				"type": "bool"
@@ -673,6 +707,50 @@
 				"internalType": "bool",
 				"name": "verified",
 				"type": "bool"
+			},
+			{
+				"internalType": "enum GoalForge.HabitType",
+				"name": "habitType",
+				"type": "uint8"
+			},
+			{
+				"internalType": "string",
+				"name": "username",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "totalDays",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "currentStreak",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "userNFTs",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
