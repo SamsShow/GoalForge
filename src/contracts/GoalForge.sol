@@ -28,7 +28,24 @@ contract GoalForge is ERC20, Ownable {
         bool completed;
         bool verified;
         HabitType habitType;
-        string username; // github/leetcode username
+        string username;
+        uint256 totalDays;
+        uint256 currentStreak;
+    }
+
+    struct GoalWithUser {
+        address user;
+        string title;
+        string description;
+        uint256 startDate;
+        uint256 endDate;
+        uint256 stake;
+        uint256 progress;
+        uint256 livesLeft;
+        bool completed;
+        bool verified;
+        HabitType habitType;
+        string username;
         uint256 totalDays;
         uint256 currentStreak;
     }
@@ -39,6 +56,7 @@ contract GoalForge is ERC20, Ownable {
     mapping(address => uint256[]) public userNFTs;
     mapping(address => bool) public hasOnboarded;
     uint256 private _nextTokenId;
+    address[] private allUsers;
 
     uint256 public constant ONBOARDING_TOKENS = 100 * 10**18; // 100 GOAL tokens for new users
 
@@ -116,8 +134,54 @@ contract GoalForge is ERC20, Ownable {
             currentStreak: 0
         });
 
+        // Add user to allUsers array if this is their first goal
+        if (userGoals[msg.sender].length == 0) {
+            allUsers.push(msg.sender);
+        }
+
         userGoals[msg.sender].push(newGoal);
         emit GoalCreated(msg.sender, userGoals[msg.sender].length - 1, title, _stake, _habitType);
+    }
+
+    function getAllGoals() external view returns (GoalWithUser[] memory) {
+        uint256 totalGoals = 0;
+        
+        // First, count total goals
+        for (uint256 i = 0; i < allUsers.length; i++) {
+            totalGoals += userGoals[allUsers[i]].length;
+        }
+
+        GoalWithUser[] memory allGoalsWithUsers = new GoalWithUser[](totalGoals);
+        uint256 currentIndex = 0;
+
+        // Then, populate the array
+        for (uint256 i = 0; i < allUsers.length; i++) {
+            address user = allUsers[i];
+            Goal[] memory userGoalArray = userGoals[user];
+            
+            for (uint256 j = 0; j < userGoalArray.length; j++) {
+                Goal memory goal = userGoalArray[j];
+                allGoalsWithUsers[currentIndex] = GoalWithUser({
+                    user: user,
+                    title: goal.title,
+                    description: goal.description,
+                    startDate: goal.startDate,
+                    endDate: goal.endDate,
+                    stake: goal.stake,
+                    progress: goal.progress,
+                    livesLeft: goal.livesLeft,
+                    completed: goal.completed,
+                    verified: goal.verified,
+                    habitType: goal.habitType,
+                    username: goal.username,
+                    totalDays: goal.totalDays,
+                    currentStreak: goal.currentStreak
+                });
+                currentIndex++;
+            }
+        }
+
+        return allGoalsWithUsers;
     }
 
     function checkInHabit(uint256 _goalIndex, bool _completed) external {

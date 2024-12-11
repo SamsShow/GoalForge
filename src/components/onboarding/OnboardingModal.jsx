@@ -3,25 +3,43 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useWriteContract, useAccount, waitForTransaction, useContractRead } from 'wagmi';
+import { useWriteContract, useAccount, waitForTransaction } from 'wagmi';
 import { contractAddress } from '@/config/contractAddress';
 import abi from '@/config/abi.json';
 import { toast } from 'sonner';
 import { Loader2, CheckCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 export function OnboardingModal({ isOpen, onClose }) {
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [isCompleted, setIsCompleted] = useState(false);
     const { address } = useAccount();
-    const router = useRouter();
 
     const { writeContract } = useWriteContract({
         mutation: {
+            onSuccess: async (hash) => {
+                console.log('Transaction submitted:', hash);
+                toast.success('Getting your tokens ready...');
+                
+                try {
+                    await waitForTransaction({ hash });
+                    setIsCompleted(true);
+                    toast.success('Welcome to GoalForge! You received 100 GOAL tokens 🎉');
+                    
+                    // Wait for 2 seconds to show completion state
+                    setTimeout(() => {
+                        onClose();
+                        window.location.reload(); // Force a full page refresh
+                    }, 2000);
+                } catch (error) {
+                    console.error('Transaction failed:', error);
+                    toast.error('Failed to complete onboarding: ' + error.message);
+                }
+            },
             onError: (error) => {
                 console.error('Contract write error:', error);
-                toast.error('Contract error: ' + error.message);
+                toast.error('Failed to complete onboarding: ' + error.message);
+                setIsLoading(false);
             }
         }
     });
@@ -35,29 +53,15 @@ export function OnboardingModal({ isOpen, onClose }) {
         try {
             setIsLoading(true);
 
-            const hash = await writeContract({
+            await writeContract({
                 address: contractAddress,
                 abi: abi,
                 functionName: 'onboard'
             });
 
-            console.log('Transaction submitted:', hash);
-            toast.success('Getting your tokens ready...');
-            
-            await waitForTransaction({ hash });
-            
-            setIsCompleted(true);
-            toast.success('Welcome to GoalForge! You received 100 GOAL tokens.');
-
-            // Wait for 2 seconds to show completion state
-            setTimeout(() => {
-                onClose();
-                router.refresh(); // Refresh the page
-            }, 2000);
         } catch (error) {
             console.error('Error during onboarding:', error);
             toast.error('Failed to complete onboarding: ' + error.message);
-        } finally {
             setIsLoading(false);
         }
     };

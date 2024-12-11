@@ -23,7 +23,7 @@ import { contractAddress } from "@/config/contractAddress";
 import abi from "@/config/abi.json";
 import { toast } from "sonner";
 import { useRouter } from 'next/navigation';
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Loader2 } from "lucide-react";
 
 function ClientHabitModal({
   isOpen,
@@ -74,13 +74,33 @@ function ClientHabitModal({
     }
   }, [error]);
 
-  const { writeContract, isPending } = useWriteContract({
+  const { writeContract } = useWriteContract({
     mutation: {
+      onSuccess: async (hash) => {
+        console.log("Transaction submitted:", hash);
+        toast.success("Creating your goal...");
+        
+        try {
+          await waitForTransaction({ hash });
+          setIsCompleted(true);
+          toast.success("Goal created successfully! 🎉");
+          
+          // Wait for 2 seconds to show completion state
+          setTimeout(() => {
+            onClose();
+            window.location.reload(); // Force a full page refresh
+          }, 2000);
+        } catch (error) {
+          console.error("Transaction failed:", error);
+          toast.error("Failed to create goal: " + error.message);
+        }
+      },
       onError: (error) => {
         console.error("Contract write error:", error);
-        toast.error("Contract error: " + error.message);
-      },
-    },
+        toast.error("Failed to create goal: " + error.message);
+        setIsLoading(false);
+      }
+    }
   });
 
   console.log("Contract write config:", {
@@ -109,6 +129,7 @@ function ClientHabitModal({
       // Validate inputs
       if (daysNumber <= 0 || livesNumber <= 0 || parseFloat(stakeAmount) <= 0) {
         toast.error("Invalid input values");
+        setIsLoading(false);
         return;
       }
 
@@ -124,37 +145,16 @@ function ClientHabitModal({
         args
       });
 
-      const hash = await writeContract({
+      await writeContract({
         address: contractAddress,
         abi: abi,
         functionName: "createHabit",
         args
       });
 
-      console.log("Transaction submitted:", hash);
-      toast.success("Creating your goal...");
-      
-      await waitForTransaction({ hash });
-      
-      // Refetch goals data after successful creation
-      await refetchGoals();
-      
-      setIsCompleted(true);
-      toast.success("Goal created successfully!");
-
-      // Wait for 2 seconds to show completion state
-      setTimeout(() => {
-        onClose();
-        router.refresh(); // Refresh the page
-      }, 2000);
     } catch (error) {
-      console.error("Detailed error:", {
-        message: error.message,
-        code: error.code,
-        error
-      });
-      toast.error("Failed to create goal: " + (error.message || "Unknown error"));
-    } finally {
+      console.error("Error creating goal:", error);
+      toast.error("Failed to create goal: " + error.message);
       setIsLoading(false);
     }
   };
@@ -257,7 +257,7 @@ function ClientHabitModal({
 
               {step === 3 && (
                 <div className="space-y-4">
-                  <Label>Stake Amount (AVAX)</Label>
+                  <Label>Stake Amount (GOAL)</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -268,7 +268,7 @@ function ClientHabitModal({
                     placeholder="Enter stake amount"
                   />
                   <p className="text-sm text-muted-foreground">
-                    The amount you want to stake for this goal
+                    The amount of GOAL tokens you want to stake
                   </p>
                 </div>
               )}
@@ -305,44 +305,26 @@ function ClientHabitModal({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    console.log("Back clicked");
-                    handleBack();
-                  }}
-                  disabled={isLoading || isPending}
+                  onClick={handleBack}
+                  disabled={isLoading}
                 >
                   Back
                 </Button>
               )}
-              {step < 4 ? (
-                <Button
-                  type="button"
-                  onClick={() => {
-                    console.log("Next clicked");
-                    handleNext();
-                  }}
-                  disabled={isLoading || isPending}
-                >
-                  Next
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={() => {
-                    console.log("Create Habit button clicked");
-                    console.log("Current step:", step);
-                    console.log("Button state:", {
-                      isLoading,
-                      isPending,
-                      disabled: isLoading || isPending,
-                    });
-                    handleSubmit();
-                  }}
-                  disabled={isLoading || isPending}
-                >
-                  {isLoading || isPending ? "Creating..." : "Create Habit"}
-                </Button>
-              )}
+              <Button
+                type="button"
+                onClick={step === 4 ? handleSubmit : handleNext}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {step === 4 ? 'Creating...' : 'Next'}
+                  </>
+                ) : (
+                  step === 4 ? 'Create Goal' : 'Next'
+                )}
+              </Button>
             </DialogFooter>
           </>
         )}

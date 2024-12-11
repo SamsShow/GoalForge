@@ -1,9 +1,10 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { Button } from '../ui/button';
-import { Search, Plus, Bell, Menu, LayoutDashboard } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Search, Plus, Bell, Menu, LayoutDashboard, Users } from 'lucide-react';
 
 export default function Navbar() {
     return (
@@ -11,8 +12,15 @@ export default function Navbar() {
             <div className="container mx-auto px-6">
                 <div className="flex h-16 items-center justify-between">
                     <div className="flex items-center gap-8">
-                        <Link href="/" className="text-xl font-bold text-primary">
-                            GoalForge
+                        <Link href="/" className="flex items-center gap-2">
+                            <Image 
+                                src="/logosvg.svg" 
+                                alt="GoalForge Logo" 
+                                width={32} 
+                                height={32}
+                                className="h-8 w-8"
+                            />
+                            <span className="text-xl font-bold text-primary">GoalForge</span>
                         </Link>
                         
                         <div className="hidden md:flex items-center gap-2 bg-secondary/50 rounded-full px-4 py-1.5">
@@ -29,6 +37,12 @@ export default function Navbar() {
                         <Link href="/dashboard">
                             <Button variant="ghost" size="icon" className="text-muted-foreground">
                                 <LayoutDashboard className="h-5 w-5" />
+                            </Button>
+                        </Link>
+
+                        <Link href="/community">
+                            <Button variant="ghost" size="icon" className="text-muted-foreground">
+                                <Users className="h-5 w-5" />
                             </Button>
                         </Link>
                         

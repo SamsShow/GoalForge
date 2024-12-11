@@ -1,24 +1,22 @@
-"use client";
-
-import { WagmiConfig } from 'wagmi';
-import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'; 
-import { config } from '@/config/wagmi';
+import { Providers } from './providers'
 import "./globals.css";
 
-const queryClient = new QueryClient();
+export const metadata = {
+    title: 'GoalForge',
+    description: 'Decentralized Goal Setting and Achievement Platform',
+    icons: {
+        icon: '/logosvg.svg',
+    },
+};
 
 export default function RootLayout({ children }) {
     return (
         <html lang="en">
+            <head>
+                <link rel="icon" href="/logosvg.svg" />
+            </head>
             <body>
-                <WagmiConfig config={config}>
-                    <QueryClientProvider client={queryClient}>
-                        <RainbowKitProvider>
-                            {children}
-                        </RainbowKitProvider>
-                    </QueryClientProvider>
-                </WagmiConfig>
+                <Providers>{children}</Providers>
             </body>
         </html>
     );
