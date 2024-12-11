@@ -82,7 +82,8 @@ export default function CreateGoal() {
                     3, // Default to 3 lives
                     parseEther(formData.stake),
                     formData.verifiers
-                ]
+                ],
+                value: parseEther(formData.stake)
             });
 
             console.log('Transaction submitted:', tx);

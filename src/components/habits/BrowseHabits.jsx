@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { HabitModal } from './HabitModal';
+import { HabitModal } from '@/components/habits/HabitModal';
 
 const HABIT_TYPES = [
     {
@@ -38,7 +38,7 @@ const HABIT_TYPES = [
 ];
 
 export function BrowseHabits() {
-    const [selectedHabit, setSelectedHabit] = useState<number | null>(null);
+    const [selectedHabit, setSelectedHabit] = useState(null);
 
     return (
         <>

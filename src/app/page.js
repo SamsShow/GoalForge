@@ -1,11 +1,39 @@
+"use client";
+
+import { useState } from 'react';
+import { useAccount, useContractRead } from 'wagmi';
 import Layout from '@/components/layout/Layout';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowRight, Target, Shield, Trophy, Users, CheckCircle, ArrowUpRight, LayoutDashboard } from 'lucide-react';
 import { ParallaxSection, ParallaxImage } from '@/components/ui/parallax';
+import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
+import { contractAddress } from '@/config/contractAddress';
+import abi from '@/config/abi.json';
 
 export default function Home() {
+    const { address } = useAccount();
+    const [showOnboarding, setShowOnboarding] = useState(false);
+
+    const { data: hasOnboarded } = useContractRead({
+        address: contractAddress,
+        abi,
+        functionName: 'hasUserOnboarded',
+        args: [address],
+        enabled: Boolean(address),
+    });
+
+    const handleStartJourney = () => {
+        if (!address) {
+            return; // ConnectButton will handle this case
+        }
+
+        if (!hasOnboarded) {
+            setShowOnboarding(true);
+        }
+    };
+
     return (
         <Layout>
             {/* Hero Section with Parallax */}
@@ -30,18 +58,36 @@ export default function Home() {
                         </div>
 
                         <div className="flex flex-wrap gap-4 justify-center">
-                            <Link href="/create">
+                            {!address ? (
                                 <Button size="lg" className="gap-2 text-base">
-                                    Start Your Journey
+                                    Connect Wallet
                                     <ArrowRight className="h-4 w-4" />
                                 </Button>
-                            </Link>
-                            <Link href="/dashboard">
-                                <Button variant="secondary" size="lg" className="text-base gap-2">
-                                    <LayoutDashboard className="h-4 w-4" />
-                                    View Dashboard
+                            ) : !hasOnboarded ? (
+                                <Button 
+                                    size="lg" 
+                                    className="gap-2 text-base"
+                                    onClick={handleStartJourney}
+                                >
+                                    Start Onboarding
+                                    <ArrowRight className="h-4 w-4" />
                                 </Button>
-                            </Link>
+                            ) : (
+                                <>
+                                    <Link href="/create">
+                                        <Button size="lg" className="gap-2 text-base">
+                                            Start Your Journey
+                                            <ArrowRight className="h-4 w-4" />
+                                        </Button>
+                                    </Link>
+                                    <Link href="/dashboard">
+                                        <Button variant="secondary" size="lg" className="text-base gap-2">
+                                            <LayoutDashboard className="h-4 w-4" />
+                                            View Dashboard
+                                        </Button>
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -166,6 +212,12 @@ export default function Home() {
                     </div>
                 </div>
             </footer>
+
+            {/* Onboarding Modal */}
+            <OnboardingModal 
+                isOpen={showOnboarding} 
+                onClose={() => setShowOnboarding(false)} 
+            />
         </Layout>
     );
 }

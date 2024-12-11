@@ -178,6 +178,12 @@ function StatCard({ title, value, icon, trend }) {
 
 // Component for habit cards
 function HabitCard({ habit }) {
+    // Convert BigInt values to numbers for calculation
+    const progress = Number(habit.progress);
+    const totalDays = Number(habit.totalDays);
+    const livesLeft = Number(habit.livesLeft);
+    const currentStreak = Number(habit.currentStreak);
+
     return (
         <Card className="p-6 bg-black/50 backdrop-blur border-[#333] hover:border-primary/50 transition-all hover:translate-y-[-2px]">
             <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
@@ -189,22 +195,22 @@ function HabitCard({ habit }) {
                 <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Progress</span>
-                        <span>{habit.progress}/{habit.totalDays} days</span>
+                        <span>{progress}/{totalDays} days</span>
                     </div>
                     <div className="h-2 bg-primary/10 rounded-full overflow-hidden">
                         <div 
                             className="h-full bg-primary transition-all"
-                            style={{ width: `${(habit.progress / habit.totalDays) * 100}%` }}
+                            style={{ width: `${(progress / totalDays) * 100}%` }}
                         />
                     </div>
                 </div>
                 <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Lives</span>
-                    <span>{'❤️'.repeat(habit.livesLeft)}</span>
+                    <span>{'❤️'.repeat(livesLeft)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Streak</span>
-                    <span>{habit.currentStreak} 🔥</span>
+                    <span>{currentStreak} 🔥</span>
                 </div>
             </div>
         </Card>
