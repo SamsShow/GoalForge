@@ -123,7 +123,7 @@ export default function Dashboard() {
                                 isLoadingGoals ? (
                                     <LoadingGrid />
                                 ) : activeHabits.length === 0 ? (
-                                    <EmptyState />
+                                    <EmptyState setActiveTab={setActiveTab} />
                                 ) : (
                                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                                         {activeHabits.map((habit, index) => (
@@ -269,7 +269,7 @@ function LoadingGrid() {
 }
 
 // Empty state component
-function EmptyState() {
+function EmptyState({ setActiveTab }) {
     return (
         <Card className="p-8 bg-black/50 backdrop-blur border-[#333] text-center">
             <h3 className="text-lg font-semibold mb-2">No Active Habits</h3>

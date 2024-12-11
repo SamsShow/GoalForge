@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useContractWrite } from 'wagmi';
+import { useContractWrite, useAccount } from 'wagmi';
 import { parseEther } from 'viem';
 import { contractAddress } from '@/config/contractAddress';
 import abi from '@/config/abi.json';
+import { toast } from 'sonner';
 
 interface HabitModalProps {
     isOpen: boolean;
@@ -19,7 +20,8 @@ interface HabitModalProps {
     icon: string;
 }
 
-export function HabitModal({ isOpen, onClose, habitType, title, description, icon }: HabitModalProps) {
+function ClientHabitModal({ isOpen, onClose, habitType, title, description, icon }: HabitModalProps) {
+    const [mounted, setMounted] = useState(false);
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         days: '',
@@ -28,32 +30,91 @@ export function HabitModal({ isOpen, onClose, habitType, title, description, ico
         username: ''
     });
 
-    const { write: createHabit } = useContractWrite({
+    const { address } = useAccount();
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const { 
+        writeAsync: createHabit,
+        isPending,
+        isSuccess
+    } = useContractWrite({
         address: contractAddress as `0x${string}`,
         abi,
         functionName: 'createHabit'
     });
 
-    const handleSubmit = () => {
-        createHabit({
-            args: [
+    const handleSubmit = async () => {
+        if (!createHabit || !address) {
+            toast.error('Please connect your wallet first');
+            return;
+        }
+
+        if (!formData.days || !formData.lives || !formData.stake || !formData.username) {
+            toast.error('Please fill in all fields');
+            return;
+        }
+
+        try {
+            console.log('Creating habit with params:', {
                 habitType,
-                parseInt(formData.days),
-                parseInt(formData.lives),
-                parseEther(formData.stake),
-                formData.username
-            ]
-        });
-        onClose();
+                days: parseInt(formData.days),
+                lives: parseInt(formData.lives),
+                stake: formData.stake,
+                username: formData.username
+            });
+
+            const tx = await createHabit({
+                args: [
+                    habitType,
+                    parseInt(formData.days),
+                    parseInt(formData.lives),
+                    parseEther(formData.stake),
+                    formData.username
+                ]
+            });
+
+            console.log('Transaction submitted:', tx);
+            toast.success('Transaction submitted! Waiting for confirmation...');
+            
+            const receipt = await tx.wait();
+            console.log('Transaction confirmed:', receipt);
+            
+            toast.success('Habit created successfully!');
+            onClose();
+        } catch (error) {
+            console.error('Error creating habit:', error);
+            toast.error('Failed to create habit: ' + (error as Error).message);
+        }
     };
 
     const handleNext = () => {
+        // Validate current step before proceeding
+        if (step === 1 && !formData.days) {
+            toast.error('Please enter number of days');
+            return;
+        }
+        if (step === 2 && !formData.lives) {
+            toast.error('Please enter number of lives');
+            return;
+        }
+        if (step === 3 && !formData.stake) {
+            toast.error('Please enter stake amount');
+            return;
+        }
+
         if (step < 4) setStep(step + 1);
     };
 
     const handleBack = () => {
         if (step > 1) setStep(step - 1);
     };
+
+    if (!mounted) {
+        return null;
+    }
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -134,17 +195,37 @@ export function HabitModal({ isOpen, onClose, habitType, title, description, ico
 
                 <DialogFooter>
                     {step > 1 && (
-                        <Button variant="outline" onClick={handleBack}>
+                        <Button variant="outline" onClick={handleBack} disabled={isPending}>
                             Back
                         </Button>
                     )}
                     {step < 4 ? (
-                        <Button onClick={handleNext}>Next</Button>
+                        <Button onClick={handleNext} disabled={isPending}>Next</Button>
                     ) : (
-                        <Button onClick={handleSubmit}>Create Habit</Button>
+                        <Button 
+                            onClick={handleSubmit} 
+                            disabled={isPending}
+                        >
+                            {isPending ? 'Creating...' : 'Create Habit'}
+                        </Button>
                     )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>
     );
+}
+
+// Export a wrapper component that only renders on the client
+export function HabitModal(props: HabitModalProps) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) {
+        return null;
+    }
+
+    return <ClientHabitModal {...props} />;
 } 
