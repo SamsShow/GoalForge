@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAccount, useContractWrite } from 'wagmi';
+import { useAccount, useWriteContract, waitForTransaction } from 'wagmi';
 import { parseEther } from 'viem';
 import Layout from '@/components/layout/Layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { contractAddress } from '@/config/contractAddress';
 import abi from '@/config/abi.json';
 import { toast } from 'sonner';
+import { Loader2 } from "lucide-react";
 
 const HABIT_TYPES = [
     { value: "0", label: "Coding - Daily GitHub Contributions" },
@@ -25,6 +26,7 @@ const HABIT_TYPES = [
 export default function CreateGoal() {
     const router = useRouter();
     const { address } = useAccount();
+    const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -34,19 +36,12 @@ export default function CreateGoal() {
         habitType: ''
     });
 
-    const { 
-        writeAsync: createHabit,
-        isPending 
-    } = useContractWrite({
-        address: contractAddress,
-        abi,
-        functionName: 'createHabit'
-    });
+    const { writeContract } = useWriteContract();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        if (!address) {
+        if (!writeContract || !address) {
             toast.error('Please connect your wallet first');
             return;
         }
@@ -57,6 +52,8 @@ export default function CreateGoal() {
         }
 
         try {
+            setIsLoading(true);
+
             // Calculate days from end date
             const endDate = new Date(formData.endDate);
             const today = new Date();
@@ -64,39 +61,57 @@ export default function CreateGoal() {
 
             if (days <= 0) {
                 toast.error('End date must be in the future');
+                setIsLoading(false);
                 return;
             }
 
+            // Convert all numeric values to regular numbers first
+            const daysNumber = Number(days);
+            const livesNumber = 3; // Default to 3 lives
+            const stakeAmount = formData.stake;
+
+            // Validate inputs
+            if (daysNumber <= 0 || livesNumber <= 0 || parseFloat(stakeAmount) <= 0) {
+                toast.error("Invalid input values");
+                setIsLoading(false);
+                return;
+            }
+
+            const args = [
+                Number(formData.habitType),  // uint8
+                daysNumber,                  // uint256
+                livesNumber,                 // uint256
+                parseEther(stakeAmount),     // uint256
+                formData.verifiers           // string
+            ];
+
             console.log('Creating habit with params:', {
-                habitType: parseInt(formData.habitType),
-                days,
-                lives: 3, // Default to 3 lives
-                stake: formData.stake,
+                habitType: Number(formData.habitType),
+                days: daysNumber,
+                lives: livesNumber,
+                stake: stakeAmount,
                 username: formData.verifiers
             });
 
-            const tx = await createHabit({
-                args: [
-                    parseInt(formData.habitType),
-                    days,
-                    3, // Default to 3 lives
-                    parseEther(formData.stake),
-                    formData.verifiers
-                ],
-                value: parseEther(formData.stake)
+            const hash = await writeContract({
+                address: contractAddress,
+                abi: abi,
+                functionName: "createHabit",
+                args,
+                value: parseEther(stakeAmount)
             });
 
-            console.log('Transaction submitted:', tx);
-            toast.success('Transaction submitted! Waiting for confirmation...');
+            console.log("Transaction submitted:", hash);
+            toast.success("Creating your goal...");
             
-            const receipt = await tx.wait();
-            console.log('Transaction confirmed:', receipt);
-            
-            toast.success('Goal created successfully!');
+            await waitForTransaction({ hash });
+            toast.success("Goal created successfully! 🎉");
             router.push('/dashboard');
+
         } catch (error) {
             console.error('Error creating goal:', error);
             toast.error('Failed to create goal: ' + error.message);
+            setIsLoading(false);
         }
     };
 
@@ -174,10 +189,17 @@ export default function CreateGoal() {
                         <CardFooter>
                             <Button 
                                 type="submit" 
-                                disabled={isPending}
+                                disabled={isLoading}
                                 className="w-full"
                             >
-                                {isPending ? 'Creating...' : 'Create Goal'}
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Creating...
+                                    </>
+                                ) : (
+                                    'Create Goal'
+                                )}
                             </Button>
                         </CardFooter>
                     </form>

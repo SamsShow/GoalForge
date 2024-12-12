@@ -1,21 +1,21 @@
 "use client";
 
-import { useAccount, useContractRead } from 'wagmi';
+import { useAccount, useContractRead, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useEffect, useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card } from '@/components/ui/card';
-import { contractAddress, nftContractAddress } from '@/config/contractAddress';
+import { contractAddress } from '@/config/contractAddress';
 import abi from '@/config/abi.json';
-import nftAbi from '@/config/nftabi.json';
-import { BrowseHabits } from '@/components/habits/BrowseHabits';
-import { Activity, Trophy, Target, Medal, Plus } from 'lucide-react';
+import { Activity, Trophy, Target, Medal, Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 export default function Dashboard() {
     const { address } = useAccount();
     const [activeHabits, setActiveHabits] = useState([]);
     const [completedHabits, setCompletedHabits] = useState([]);
     const [activeTab, setActiveTab] = useState('active');
+    const [nfts, setNfts] = useState([]);
 
     // Contract reads
     const { data: goals, isLoading: isLoadingGoals } = useContractRead({
@@ -25,14 +25,6 @@ export default function Dashboard() {
         args: [address],
         enabled: Boolean(address),
         watch: true,
-    });
-
-    const { data: nfts, isLoading: isLoadingNFTs } = useContractRead({
-        address: nftContractAddress,
-        abi: nftAbi,
-        functionName: 'getUserNFTs',
-        args: [address],
-        enabled: Boolean(address),
     });
 
     useEffect(() => {
@@ -92,7 +84,7 @@ export default function Dashboard() {
                         />
                         <StatCard
                             title="NFTs Earned"
-                            value={nfts?.length || 0}
+                            value={(nfts || []).length}
                             icon={<Medal className="w-5 h-5" />}
                             trend="Rare collector"
                         />
@@ -127,7 +119,7 @@ export default function Dashboard() {
                                 ) : (
                                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                                         {activeHabits.map((habit, index) => (
-                                            <HabitCard key={index} habit={habit} />
+                                            <HabitCard key={index} habit={habit} index={index} />
                                         ))}
                                     </div>
                                 )
@@ -177,12 +169,78 @@ function StatCard({ title, value, icon, trend }) {
 }
 
 // Component for habit cards
-function HabitCard({ habit }) {
+function HabitCard({ habit, index }) {
     // Convert BigInt values to numbers for calculation
     const progress = Number(habit.progress);
     const totalDays = Number(habit.totalDays);
     const livesLeft = Number(habit.livesLeft);
     const currentStreak = Number(habit.currentStreak);
+    const endDate = Number(habit.endDate);
+
+    const { writeContract, data: hash, isPending } = useWriteContract();
+    const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+        hash,
+    });
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Watch for transaction success
+    useEffect(() => {
+        if (isSuccess) {
+            toast.success("Task completed successfully! 🎉");
+            setIsLoading(false);
+        }
+    }, [isSuccess]);
+
+    const canCompleteTask = () => {
+        const now = Math.floor(Date.now() / 1000); // Current time in seconds
+        if (habit.completed) {
+            toast.error("Goal already completed!");
+            return false;
+        }
+        if (now > endDate) {
+            toast.error("Goal period has finished!");
+            return false;
+        }
+        return true;
+    };
+
+    const handleCompleteTask = async () => {
+        if (!writeContract) {
+            toast.error("Please connect your wallet first");
+            return;
+        }
+
+        if (!canCompleteTask()) {
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            console.log("Calling checkInHabit with:", {
+                goalIndex: index,
+                completed: true,
+                endDate: new Date(endDate * 1000).toLocaleString(),
+                currentTime: new Date().toLocaleString()
+            });
+
+            await writeContract({
+                address: contractAddress,
+                abi: abi,
+                functionName: "checkInHabit",
+                args: [BigInt(index), true],
+            });
+
+            toast.success("Transaction submitted...");
+            
+        } catch (error) {
+            console.error("Error completing task:", error);
+            toast.error("Failed to complete task: " + error.message);
+            setIsLoading(false);
+        }
+    };
+
+    const isExpired = Math.floor(Date.now() / 1000) > endDate;
+    const buttonDisabled = isLoading || isPending || isConfirming || habit.completed || isExpired;
 
     return (
         <Card className="p-6 bg-black/50 backdrop-blur border-[#333] hover:border-primary/50 transition-all hover:translate-y-[-2px]">
@@ -212,6 +270,28 @@ function HabitCard({ habit }) {
                     <span className="text-muted-foreground">Streak</span>
                     <span>{currentStreak} 🔥</span>
                 </div>
+                <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">End Date</span>
+                    <span>{new Date(endDate * 1000).toLocaleDateString()}</span>
+                </div>
+                <Button 
+                    className="w-full"
+                    onClick={handleCompleteTask}
+                    disabled={buttonDisabled}
+                >
+                    {isPending || isConfirming ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {isPending ? "Confirm in Wallet..." : "Confirming..."}
+                        </>
+                    ) : habit.completed ? (
+                        "Goal Completed ✅"
+                    ) : isExpired ? (
+                        "Goal Expired ⌛"
+                    ) : (
+                        "Complete Today's Task"
+                    )}
+                </Button>
             </div>
         </Card>
     );
