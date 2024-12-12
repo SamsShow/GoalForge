@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAccount, useWriteContract, waitForTransaction } from "wagmi";
+import { useAccount, useWriteContract } from "wagmi";
+import { waitForTransaction } from "@wagmi/core";
 import { parseEther } from "viem";
 import Layout from "@/components/layout/Layout";
 import {
@@ -61,8 +62,7 @@ export default function CreateGoal() {
           router.push("/dashboard");
         } catch (error) {
           console.error("Transaction failed:", error);
-          toast.error("Failed to create goal: " + error.message);
-          setIsLoading(false);
+          toast.error("Failed to create goal. Please try again.");
         }
       },
       onError: (error) => {

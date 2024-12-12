@@ -15,9 +15,9 @@ import { Label } from "@/components/ui/label";
 import {
   useWriteContract,
   useAccount,
-  waitForTransaction,
   useContractRead,
 } from "wagmi";
+import { waitForTransaction } from '@wagmi/core';
 import { parseEther } from "viem";
 import { contractAddress } from "@/config/contractAddress";
 import abi from "@/config/abi.json";
