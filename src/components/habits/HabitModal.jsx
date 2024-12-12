@@ -23,24 +23,120 @@ import { contractAddress } from "@/config/contractAddress";
 import abi from "@/config/abi.json";
 import { toast } from "sonner";
 import { useRouter } from 'next/navigation';
-import { CheckCircle, Loader2 } from "lucide-react";
+import { CheckCircle, Loader2, ArrowLeft, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-function ClientHabitModal({
-  isOpen,
-  onClose,
-  habitType,
-  title,
-  description,
-  icon,
-}) {
-  console.log("Contract configuration:", {
-    address: contractAddress,
-    abiLength: abi?.length,
-    habitType,
-  });
+const slideVariants = {
+  enter: (direction) => ({
+    x: direction > 0 ? 1000 : -1000,
+    opacity: 0
+  }),
+  center: {
+    zIndex: 1,
+    x: 0,
+    opacity: 1
+  },
+  exit: (direction) => ({
+    zIndex: 0,
+    x: direction < 0 ? 1000 : -1000,
+    opacity: 0
+  })
+};
 
+const StepContent = ({ step, formData, setFormData }) => {
+  const stepContents = {
+    1: {
+      title: "Duration",
+      description: "Choose how many days you want to commit to this habit",
+      icon: "📅",
+      input: (
+        <Input
+          type="number"
+          min="1"
+          value={formData.days}
+          onChange={(e) => setFormData({ ...formData, days: e.target.value })}
+          placeholder="Enter number of days"
+          className="bg-black/20 border-white/10 focus:border-primary/50 backdrop-blur-md placeholder:text-white/30"
+        />
+      )
+    },
+    2: {
+      title: "Lives",
+      description: "Choose how many lives you want (max 5)",
+      icon: "❤️",
+      input: (
+        <Input
+          type="number"
+          min="1"
+          max="5"
+          value={formData.lives}
+          onChange={(e) => setFormData({ ...formData, lives: e.target.value })}
+          placeholder="Enter number of lives (max 5)"
+          className="bg-black/20 border-white/10 focus:border-primary/50 backdrop-blur-md placeholder:text-white/30"
+        />
+      )
+    },
+    3: {
+      title: "Stake",
+      description: "Set your stake amount in ETH",
+      icon: "💎",
+      input: (
+        <Input
+          type="number"
+          min="0"
+          step="0.01"
+          value={formData.stake}
+          onChange={(e) => setFormData({ ...formData, stake: e.target.value })}
+          placeholder="Enter stake amount in ETH"
+          className="bg-black/20 border-white/10 focus:border-primary/50 backdrop-blur-md placeholder:text-white/30"
+        />
+      )
+    },
+    4: {
+      title: "Username",
+      description: "Choose your display name",
+      icon: "👤",
+      input: (
+        <Input
+          type="text"
+          value={formData.username}
+          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+          placeholder="Enter your username"
+          className="bg-black/20 border-white/10 focus:border-primary/50 backdrop-blur-md placeholder:text-white/30"
+        />
+      )
+    }
+  };
+
+  const content = stepContents[step];
+
+  return (
+    <motion.div
+      className="space-y-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+    >
+      <div className="flex items-center gap-3">
+        <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent backdrop-blur-md border border-white/10">
+          <span className="text-2xl">{content.icon}</span>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent">
+            {content.title}
+          </h3>
+          <p className="text-sm text-white/60">{content.description}</p>
+        </div>
+      </div>
+      {content.input}
+    </motion.div>
+  );
+};
+
+export function HabitModal({ isOpen, onClose, habitType, title, description, icon }) {
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState(1);
+  const [direction, setDirection] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
   const [formData, setFormData] = useState({
     days: "",
@@ -54,7 +150,6 @@ function ClientHabitModal({
   const [error, setError] = useState(null);
   const router = useRouter();
 
-  // Add contract read to refetch data
   const { refetch: refetchGoals } = useContractRead({
     address: contractAddress,
     abi,
@@ -77,7 +172,6 @@ function ClientHabitModal({
   const { writeContract } = useWriteContract({
     mutation: {
       onSuccess: async (hash) => {
-        console.log("Transaction submitted:", hash);
         toast.success("Creating your goal...");
         
         try {
@@ -85,10 +179,9 @@ function ClientHabitModal({
           setIsCompleted(true);
           toast.success("Goal created successfully! 🎉");
           
-          // Wait for 2 seconds to show completion state
           setTimeout(() => {
             onClose();
-            window.location.reload(); // Force a full page refresh
+            window.location.reload();
           }, 2000);
         } catch (error) {
           console.error("Transaction failed:", error);
@@ -103,16 +196,7 @@ function ClientHabitModal({
     }
   });
 
-  console.log("Contract write config:", {
-    address: contractAddress,
-    abiLength: abi?.length,
-    writeContract,
-  });
-
   const handleSubmit = async () => {
-    console.log("Submit button clicked");
-    console.log("Form Data State:", formData);
-
     if (!writeContract || !address) {
       toast.error("Please connect your wallet first");
       return;
@@ -121,35 +205,27 @@ function ClientHabitModal({
     try {
       setIsLoading(true);
 
-      // Convert all numeric values to regular numbers first
       const daysNumber = Number(formData.days);
       const livesNumber = Number(formData.lives);
       const stakeAmount = formData.stake;
 
-      // Validate inputs
       if (daysNumber <= 0 || livesNumber <= 0 || parseFloat(stakeAmount) <= 0) {
         toast.error("Invalid input values");
         setIsLoading(false);
         return;
       }
 
-      const args = [
-        Number(habitType),          // uint8
-        daysNumber,                 // uint256
-        livesNumber,                // uint256
-        parseEther(stakeAmount),    // uint256
-        formData.username           // string
-      ];
-
-      console.log("Attempting habit creation with:", {
-        args
-      });
-
       await writeContract({
         address: contractAddress,
         abi: abi,
         functionName: "createHabit",
-        args
+        args: [
+          Number(habitType),
+          daysNumber,
+          livesNumber,
+          parseEther(stakeAmount),
+          formData.username
+        ]
       });
 
     } catch (error) {
@@ -160,8 +236,6 @@ function ClientHabitModal({
   };
 
   const handleNext = () => {
-    console.log("Next button clicked, current step:", step);
-
     if (step === 1 && !formData.days) {
       toast.error("Please enter number of days");
       return;
@@ -176,174 +250,160 @@ function ClientHabitModal({
     }
 
     if (step < 4) {
+      setDirection(1);
       setStep(step + 1);
-      console.log("Moving to step:", step + 1);
     }
   };
 
   const handleBack = () => {
-    if (step > 1) setStep(step - 1);
+    if (step > 1) {
+      setDirection(-1);
+      setStep(step - 1);
+    }
   };
 
-  if (!mounted) {
-    return null;
-  }
+  if (!mounted) return null;
+
+  const progressPercentage = (step / 4) * 100;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {isCompleted ? (
-              <>Goal Created Successfully! 🎉</>
-            ) : (
-              <>
-                <span>{icon}</span> {title}
-              </>
-            )}
-          </DialogTitle>
-          <DialogDescription>
-            {isCompleted ? (
-              "Your goal has been created and you're ready to start your journey. Redirecting to dashboard..."
-            ) : (
-              description
-            )}
-          </DialogDescription>
-        </DialogHeader>
-
-        {isCompleted ? (
-          <div className="flex justify-center py-6">
-            <CheckCircle className="h-12 w-12 text-primary animate-pulse" />
-          </div>
-        ) : (
-          <>
-            <div className="grid gap-4 py-4">
-              {step === 1 && (
-                <div className="space-y-4">
-                  <Label>Number of Days</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={formData.days}
-                    onChange={(e) =>
-                      setFormData({ ...formData, days: e.target.value })
-                    }
-                    placeholder="Enter number of days"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Choose how many days you want to commit to this habit
-                  </p>
+      <DialogContent className="sm:max-w-[425px] overflow-hidden bg-black/40 backdrop-blur-xl border-white/10">
+        {/* Background effects */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-500/5 to-blue-500/10 opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-white/0 to-transparent" />
+        
+        {/* Content */}
+        <div className="relative z-10">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {isCompleted ? (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200 }}
+                  className="bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent"
+                >
+                  Goal Created Successfully! 🎉
+                </motion.div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{icon}</span>
+                  <span className="bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent">
+                    {title}
+                  </span>
                 </div>
               )}
-
-              {step === 2 && (
-                <div className="space-y-4">
-                  <Label>Number of Lives</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="5"
-                    value={formData.lives}
-                    onChange={(e) =>
-                      setFormData({ ...formData, lives: e.target.value })
-                    }
-                    placeholder="Enter number of lives (max 5)"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Lives help you avoid losing your stake if you miss a day (max 5)
-                  </p>
-                </div>
+            </DialogTitle>
+            <DialogDescription className="text-white/60">
+              {isCompleted ? (
+                "Your goal has been created and you're ready to start your journey. Redirecting to dashboard..."
+              ) : (
+                description
               )}
+            </DialogDescription>
+          </DialogHeader>
 
-              {step === 3 && (
-                <div className="space-y-4">
-                  <Label>Stake Amount (GOAL)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.stake}
-                    onChange={(e) =>
-                      setFormData({ ...formData, stake: e.target.value })
-                    }
-                    placeholder="Enter stake amount"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    The amount of GOAL tokens you want to stake
-                  </p>
-                </div>
-              )}
-
-              {step === 4 && (
-                <div className="space-y-4">
-                  <Label>
-                    {habitType <= 1
-                      ? "GitHub/LeetCode Username"
-                      : "Verification Method"}
-                  </Label>
-                  <Input
-                    value={formData.username}
-                    onChange={(e) =>
-                      setFormData({ ...formData, username: e.target.value })
-                    }
-                    placeholder={
-                      habitType <= 1
-                        ? "Enter your username"
-                        : "How will you verify completion?"
-                    }
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    {habitType <= 1
-                      ? "We'll use this to verify your daily progress"
-                      : "Describe how you'll verify completing this habit"}
-                  </p>
-                </div>
-              )}
+          {/* Progress Bar */}
+          {!isCompleted && (
+            <div className="mt-4 mb-6">
+              <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-primary via-primary/80 to-primary/60"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPercentage}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+              <div className="flex justify-between mt-2">
+                {[1, 2, 3, 4].map((stepNumber) => (
+                  <motion.div
+                    key={stepNumber}
+                    className={`text-xs ${
+                      stepNumber <= step ? 'text-white/80' : 'text-white/40'
+                    }`}
+                    animate={{
+                      scale: stepNumber === step ? 1.2 : 1,
+                      opacity: stepNumber <= step ? 1 : 0.5,
+                    }}
+                  >
+                    Step {stepNumber}
+                  </motion.div>
+                ))}
+              </div>
             </div>
+          )}
 
-            <DialogFooter>
-              {step > 1 && (
+          {isCompleted ? (
+            <motion.div 
+              className="flex justify-center py-6"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200 }}
+            >
+              <CheckCircle className="h-12 w-12 text-primary animate-pulse" />
+            </motion.div>
+          ) : (
+            <>
+              <div className="relative overflow-hidden py-4">
+                <AnimatePresence initial={false} custom={direction}>
+                  <motion.div
+                    key={step}
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x: { type: "spring", stiffness: 300, damping: 30 },
+                      opacity: { duration: 0.2 }
+                    }}
+                  >
+                    <StepContent step={step} formData={formData} setFormData={setFormData} />
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              <DialogFooter className="flex justify-between gap-2">
                 <Button
-                  type="button"
                   variant="outline"
                   onClick={handleBack}
-                  disabled={isLoading}
+                  disabled={step === 1 || isLoading}
+                  className="w-full bg-white/5 hover:bg-white/10 border-white/10"
                 >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
                   Back
                 </Button>
-              )}
-              <Button
-                type="button"
-                onClick={step === 4 ? handleSubmit : handleNext}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {step === 4 ? 'Creating...' : 'Next'}
-                  </>
+                {step === 4 ? (
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={isLoading || !formData.username}
+                    className="w-full bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:to-primary text-white"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      "Create Goal"
+                    )}
+                  </Button>
                 ) : (
-                  step === 4 ? 'Create Goal' : 'Next'
+                  <Button
+                    onClick={handleNext}
+                    disabled={isLoading}
+                    className="w-full bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:to-primary text-white"
+                  >
+                    Next
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
                 )}
-              </Button>
-            </DialogFooter>
-          </>
-        )}
+              </DialogFooter>
+            </>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
-}
-
-// Export a wrapper component that only renders on the client
-export function HabitModal(props) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
-
-  return <ClientHabitModal {...props} />;
 }
