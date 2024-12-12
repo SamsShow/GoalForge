@@ -3,7 +3,7 @@
 import { useAccount, useContractRead } from 'wagmi';
 import { useEffect, useState } from 'react';
 import Layout from '@/components/layout/Layout';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { contractAddress } from '@/config/contractAddress';
 import abi from '@/config/abi.json';
 import { Activity, Trophy, Target, Medal, Plus } from 'lucide-react';
@@ -14,6 +14,21 @@ import { HabitCard } from '@/components/dashboard/HabitCard';
 import { BrowseHabits } from '@/components/habits/BrowseHabits';
 import { NavigationTabs } from '@/components/dashboard/NavigationTabs';
 import { fadeInUp, staggerContainer } from '@/lib/utils';
+import nft1 from "@/nfts/dsa.jpg";
+
+const dummyNFT = {
+  id: 1,
+  name: "Elite Coder #1",
+  image: nft1, 
+  description: "Awarded for achievement in coding challenges and consistent goal completion",
+  attributes: [
+    { trait_type: "Class", value: "Elite Developer" },
+    { trait_type: "Achievement Type", value: "Coding Master" },
+    { trait_type: "Streak", value: "5 Days" },
+    { trait_type: "Rarity", value: "Rare" }
+  ],
+  dateEarned: "2024-03-15"
+};
 
 export default function Dashboard() {
     const { address } = useAccount();
@@ -181,6 +196,44 @@ export default function Dashboard() {
                             </motion.div>
                         </AnimatePresence>
                     </div>
+
+                    {/* NFT Achievements Section */}
+                    <section className="mt-8">
+                        <h2 className="text-2xl font-bold mb-4">Achievement NFTs</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-lg">{dummyNFT.name}</CardTitle>
+                                    <CardDescription>Earned on {new Date(dummyNFT.dateEarned).toLocaleDateString()}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="relative aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20">
+                                        <img 
+                                            src={dummyNFT.image} 
+                                            alt={dummyNFT.name}
+                                            className="object-contain w-full h-full"
+                                        />
+                                        <div className="absolute top-2 right-2">
+                                            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-primary to-purple-600 text-white shadow-lg">
+                                                {dummyNFT.attributes.find(a => a.trait_type === "Rarity")?.value}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p className="text-sm text-muted-foreground">{dummyNFT.description}</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {dummyNFT.attributes.map((attr, idx) => (
+                                                <div key={idx} className="bg-muted/50 rounded-lg p-2">
+                                                    <p className="text-xs text-muted-foreground">{attr.trait_type}</p>
+                                                    <p className="text-sm font-medium">{attr.value}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </section>
                 </div>
             </div>
         </Layout>
