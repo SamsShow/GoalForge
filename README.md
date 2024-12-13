@@ -1,24 +1,61 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Getting Started
+## Project Overview
+GoalForge is a blockchain-based platform that simplifies access to blockchain technology and reduces transaction costs through the Avalanche network. It empowers users to manage and achieve their goals in a decentralized, community-driven environment.
 
-First, run the development server:
+## Vision Statement
+GoalForge aims to provide user-friendly blockchain access, enabling cost-effective transactions and fostering a community-driven approach to goal management.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Features
+- User-friendly interface for managing goals
+- Cost-effective transactions via Avalanche
+- Community-driven goal management
+- Real-time updates and notifications
+
+## Installation
+To set up the project locally, follow these steps:
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd goalforge
+   ```
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+## Usage
+Open [http://localhost:3000](http://localhost:3000) in your browser to access the application. You can start managing your goals and interacting with the community.
+
+## Workflow
+The application is structured into several components:
+- **Dashboard**: Displays an overview of goals and recent transactions.
+- **Community**: Allows users to interact and collaborate on goals.
+- **Create**: Enables users to create new goals.
+- **Goals**: Manages individual goals and tracks progress.
+
+## Workflow Diagram
+
+```mermaid
+graph TD;
+    A[Start] --> B[User Access]
+    B --> C[Dashboard]
+    C --> D[Community Interaction]
+    D --> E[Create Goal]
+    E --> F[Manage Goals]
+    F --> G[End]
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## License
+This project is licensed under the MIT License.
 
 ## Learn More
 
