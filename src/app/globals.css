@@ -1,61 +1,201 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
+  /* Core background - rich dark with slight warmth */
+  --background: 220 16% 4%;
+  --foreground: 60 9% 98%;
   
-  /* Card colors */
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
+  /* Card colors - subtle elevation */
+  --card: 220 14% 7%;
+  --card-foreground: 60 9% 98%;
   
-  /* Primary colors */
-  --primary: 252 100% 67%;
-  --primary-foreground: 0 0% 98%;
+  /* Primary - vibrant teal/cyan for energy */
+  --primary: 172 66% 50%;
+  --primary-foreground: 220 16% 4%;
   
-  /* Secondary colors */
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
+  /* Secondary - muted slate */
+  --secondary: 220 13% 12%;
+  --secondary-foreground: 60 9% 98%;
   
   /* Muted colors */
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
+  --muted: 220 13% 14%;
+  --muted-foreground: 220 9% 55%;
   
-  /* Accent colors */
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
+  /* Accent - warm coral for highlights */
+  --accent: 14 89% 63%;
+  --accent-foreground: 220 16% 4%;
   
   /* Border colors */
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 240 4.9% 83.9%;
+  --border: 220 13% 15%;
+  --input: 220 13% 12%;
+  --ring: 172 66% 50%;
   
   /* Status colors */
-  --success: 142 76% 36%;
-  --warning: 48 96% 53%;
+  --success: 158 64% 52%;
+  --warning: 43 96% 56%;
   --error: 0 84% 60%;
   
   /* Chart colors */
-  --chart-1: 252 100% 67%;
+  --chart-1: 172 66% 50%;
   --chart-2: 199 89% 48%;
-  --chart-3: 142 76% 36%;
+  --chart-3: 158 64% 52%;
+  
+  /* Custom properties */
+  --radius: 12px;
+  --glow: 172 66% 50%;
+}
+
+* {
+  font-family: 'Outfit', sans-serif;
 }
 
 body {
   @apply bg-background text-foreground antialiased;
+  background-image: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, hsl(172 66% 50% / 0.08), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 100%, hsl(14 89% 63% / 0.05), transparent);
+  min-height: 100vh;
 }
 
 /* Modern scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-secondary/30 rounded-full;
+  @apply bg-transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary/50 rounded-full hover:bg-primary/70 transition-colors;
+  @apply bg-primary/30 rounded-full hover:bg-primary/50 transition-colors;
+}
+
+/* Glass effect utility */
+.glass {
+  @apply bg-card/60 backdrop-blur-xl border border-border/50;
+}
+
+.glass-hover {
+  @apply hover:bg-card/80 hover:border-primary/20 transition-all duration-300;
+}
+
+/* Glow effects */
+.glow {
+  box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3);
+}
+
+.glow-accent {
+  box-shadow: 0 0 20px -5px hsl(var(--accent) / 0.3);
+}
+
+/* Text gradient utility */
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-[hsl(190,70%,50%)] to-accent;
+}
+
+.text-gradient-subtle {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground;
+}
+
+/* Card hover effect */
+.card-interactive {
+  @apply relative overflow-hidden;
+}
+
+.card-interactive::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 transition-opacity duration-300;
+}
+
+.card-interactive:hover::before {
+  @apply opacity-100;
+}
+
+/* Animated gradient border */
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gradient-border:hover::before {
+  opacity: 1;
+}
+
+/* Smooth animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3); }
+  50% { box-shadow: 0 0 30px -5px hsl(var(--primary) / 0.5); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Focus states */
+*:focus-visible {
+  @apply outline-none ring-2 ring-primary/50 ring-offset-2 ring-offset-background;
+}
+
+/* Selection */
+::selection {
+  @apply bg-primary/30 text-foreground;
+}
+
+/* Input styling */
+input, textarea, select {
+  @apply bg-input border-border focus:border-primary/50 transition-colors;
+}
+
+/* Button enhancements */
+.btn-primary {
+  @apply bg-primary text-primary-foreground font-medium;
+  @apply hover:brightness-110 active:scale-[0.98];
+  @apply transition-all duration-200;
+}
+
+.btn-secondary {
+  @apply bg-secondary text-secondary-foreground font-medium;
+  @apply hover:bg-secondary/80 active:scale-[0.98];
+  @apply transition-all duration-200;
+}
+
+/* Badge styles */
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-primary {
+  @apply bg-primary/20 text-primary border border-primary/30;
+}
+
+.badge-accent {
+  @apply bg-accent/20 text-accent border border-accent/30;
 }

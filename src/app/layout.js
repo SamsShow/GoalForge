@@ -1,12 +1,9 @@
 import { Providers } from './providers'
 import "./globals.css";
-import { Inter } from 'next/font/google'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-    title: 'GoalForge',
-    description: 'Decentralized Goal Setting and Achievement Platform',
+    title: 'STICKIT - Stick to Your Goals',
+    description: 'Decentralized Goal Setting and Achievement Platform - Stake, Commit, Achieve',
     icons: {
         icon: '/logosvg.svg',
     },
@@ -14,7 +11,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
     return (
-        <html lang="en" className={inter.className}>
+        <html lang="en">
             <body>
                 <Providers>{children}</Providers>
             </body>

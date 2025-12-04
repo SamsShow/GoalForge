@@ -1,73 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# STICKIT
 
-## Project Overview
-GoalForge is a blockchain-based platform that simplifies access to blockchain technology and reduces transaction costs through the Avalanche network. It empowers users to manage and achieve their goals in a decentralized, community-driven environment.
+A Web3-powered goal achievement platform that helps you stick to your goals through financial commitment.
 
-## Vision Statement
-GoalForge aims to provide user-friendly blockchain access, enabling cost-effective transactions and fostering a community-driven approach to goal management.
+## Overview
+
+STICKIT combines blockchain technology with proven accountability mechanisms to help users achieve their goals. By staking tokens on goals, users create real financial commitment that dramatically increases success rates.
 
 ## Features
-- User-friendly interface for managing goals
-- Cost-effective transactions via Avalanche
-- Community-driven goal management
-- Real-time updates and notifications
 
-## Installation
-To set up the project locally, follow these steps:
+- **Stake-Based Accountability**: Put tokens at stake on your goals to create genuine commitment
+- **Smart Goal Tracking**: Create structured goals with milestones and deadlines
+- **Community Verification**: Get your achievements verified by trusted community members
+- **Reward System**: Earn back your stake plus bonus rewards upon successful completion
+- **Achievement NFTs**: Collect unique NFTs for completing goals
+- **Real-time Progress**: Track your progress with beautiful, intuitive dashboards
+
+## Tech Stack
+
+- **Frontend**: Next.js 15, React 19, Tailwind CSS
+- **Blockchain**: Avalanche (Fuji Testnet)
+- **Web3**: wagmi, viem, RainbowKit
+- **Animations**: Framer Motion
+
+## Getting Started
 
 1. Clone the repository:
    ```bash
    git clone <repository-url>
+   cd stickit
    ```
-2. Navigate to the project directory:
-   ```bash
-   cd goalforge
-   ```
-3. Install dependencies:
+
+2. Install dependencies:
    ```bash
    npm install
    ```
+
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env.local
+   ```
+   Add your WalletConnect project ID to `.env.local`
+
 4. Run the development server:
    ```bash
    npm run dev
    ```
 
-## Usage
-Open [http://localhost:3000](http://localhost:3000) in your browser to access the application. You can start managing your goals and interacting with the community.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-## Workflow
-The application is structured into several components:
-- **Dashboard**: Displays an overview of goals and recent transactions.
-- **Community**: Allows users to interact and collaborate on goals.
-- **Create**: Enables users to create new goals.
-- **Goals**: Manages individual goals and tracks progress.
+## Project Structure
 
-## Workflow Diagram
-
-```mermaid
-graph TD;
-    A[Start] --> B[User Access]
-    B --> C[Dashboard]
-    C --> D[Community Interaction]
-    D --> E[Create Goal]
-    E --> F[Manage Goals]
-    F --> G[End]
+```
+src/
+├── app/                 # Next.js app router pages
+│   ├── community/       # Community feed page
+│   ├── create/          # Goal creation page
+│   ├── dashboard/       # User dashboard
+│   └── goals/           # Individual goal pages
+├── components/          # Reusable components
+│   ├── dashboard/       # Dashboard-specific components
+│   ├── habits/          # Habit/goal components
+│   ├── layout/          # Layout components
+│   ├── onboarding/      # Onboarding flow
+│   └── ui/              # UI primitives
+├── config/              # App configuration
+├── contracts/           # Smart contract files
+├── context/             # React contexts
+├── hooks/               # Custom hooks
+└── lib/                 # Utility functions
 ```
 
+## How It Works
+
+1. **Set Your Goal**: Define what you want to achieve with clear milestones
+2. **Stake Tokens**: Lock tokens in a smart contract as commitment
+3. **Track Progress**: Log your daily progress and maintain streaks
+4. **Get Verified**: Community members verify your goal completion
+5. **Earn Rewards**: Get your stake back plus bonus tokens and NFTs
+
 ## License
-This project is licensed under the MIT License.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT License

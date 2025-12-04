@@ -6,11 +6,25 @@ import Layout from '@/components/layout/Layout';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ArrowRight, Target, Shield, Trophy, Users, CheckCircle, ArrowUpRight, LayoutDashboard } from 'lucide-react';
-import { ParallaxSection, ParallaxImage } from '@/components/ui/parallax';
+import { ArrowRight, Target, Shield, Trophy, Users, CheckCircle, LayoutDashboard, Zap, Sparkles, TrendingUp, Lock } from 'lucide-react';
 import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
 import { contractAddress } from '@/config/contractAddress';
 import abi from '@/config/abi.json';
+import { motion } from 'framer-motion';
+
+const fadeIn = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.5 }
+};
+
+const stagger = {
+    animate: {
+        transition: {
+            staggerChildren: 0.1
+        }
+    }
+};
 
 export default function Home() {
     const { address } = useAccount();
@@ -26,7 +40,7 @@ export default function Home() {
 
     const handleStartJourney = () => {
         if (!address) {
-            return; // ConnectButton will handle this case
+            return;
         }
 
         if (!hasOnboarded) {
@@ -36,124 +50,253 @@ export default function Home() {
 
     return (
         <Layout>
-            {/* Hero Section with Parallax */}
+            {/* Hero Section */}
             <section className="relative min-h-[90vh] overflow-hidden">
-                <ParallaxSection offset={100} className="absolute inset-0 -z-10">
-                    <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background" />
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/20 via-background/50 to-background" />
-                </ParallaxSection>
+                {/* Background effects */}
+                <div className="absolute inset-0 -z-10">
+                    <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px]" />
+                    <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/15 rounded-full blur-[100px]" />
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_hsl(var(--background))_70%)]" />
+                </div>
 
                 <div className="container mx-auto px-4">
-                    <div className="flex flex-col items-center justify-center min-h-[80vh] text-center space-y-8">
-                        <div className="space-y-4">
-                            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-blue-500 leading-tight">
-                                Transform Your Goals into 
-                                <br />
-                                Achievable Milestones
-                            </h1>
-                            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                                Set goals, stake tokens, and get rewarded for your achievements. 
-                                Use blockchain technology to stay accountable and track your progress.
-                            </p>
-                        </div>
+                    <motion.div 
+                        className="flex flex-col items-center justify-center min-h-[85vh] text-center"
+                        initial="initial"
+                        animate="animate"
+                        variants={stagger}
+                    >
+                        {/* Badge */}
+                        <motion.div 
+                            variants={fadeIn}
+                            className="mb-8"
+                        >
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border-primary/20">
+                                <Sparkles className="h-4 w-4 text-primary" />
+                                <span className="text-sm font-medium text-muted-foreground">
+                                    Web3-Powered Goal Achievement
+                                </span>
+                            </div>
+                        </motion.div>
 
-                        <div className="flex flex-wrap gap-4 justify-center">
+                        {/* Main heading */}
+                        <motion.div variants={fadeIn} className="space-y-6 max-w-4xl">
+                            <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.1]">
+                                <span className="text-foreground">Make Goals</span>
+                                <br />
+                                <span className="text-gradient">Actually Stick</span>
+                            </h1>
+                            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                                Put your money where your mouth is. Stake tokens on your goals, 
+                                stay accountable, and earn rewards when you achieve them.
+                            </p>
+                        </motion.div>
+
+                        {/* CTA Buttons */}
+                        <motion.div 
+                            variants={fadeIn}
+                            className="flex flex-wrap gap-4 justify-center mt-10"
+                        >
                             {!address ? (
-                                <Button size="lg" className="gap-2 text-base">
+                                <Button 
+                                    size="lg" 
+                                    className="gap-2 text-base bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12"
+                                >
                                     Connect Wallet
                                     <ArrowRight className="h-4 w-4" />
                                 </Button>
                             ) : !hasOnboarded ? (
                                 <Button 
                                     size="lg" 
-                                    className="gap-2 text-base"
+                                    className="gap-2 text-base bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12"
                                     onClick={handleStartJourney}
                                 >
-                                    Start Onboarding
+                                    Start Your Journey
                                     <ArrowRight className="h-4 w-4" />
                                 </Button>
                             ) : (
                                 <>
                                     <Link href="/create">
-                                        <Button size="lg" className="gap-2 text-base">
-                                            Start Your Journey
+                                        <Button 
+                                            size="lg" 
+                                            className="gap-2 text-base bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12"
+                                        >
+                                            Create Goal
                                             <ArrowRight className="h-4 w-4" />
                                         </Button>
                                     </Link>
                                     <Link href="/dashboard">
-                                        <Button variant="secondary" size="lg" className="text-base gap-2">
+                                        <Button 
+                                            variant="secondary" 
+                                            size="lg" 
+                                            className="text-base gap-2 px-8 h-12 glass hover:bg-secondary/80"
+                                        >
                                             <LayoutDashboard className="h-4 w-4" />
-                                            View Dashboard
+                                            Dashboard
                                         </Button>
                                     </Link>
                                 </>
                             )}
-                        </div>
-                    </div>
+                        </motion.div>
+
+                        {/* Stats */}
+                        <motion.div 
+                            variants={fadeIn}
+                            className="grid grid-cols-3 gap-8 md:gap-16 mt-16 pt-8 border-t border-border/30"
+                        >
+                            {stats.map((stat, index) => (
+                                <div key={index} className="text-center">
+                                    <div className="text-2xl md:text-3xl font-bold text-foreground">{stat.value}</div>
+                                    <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
+                                </div>
+                            ))}
+                        </motion.div>
+                    </motion.div>
                 </div>
             </section>
 
-            {/* Features Section with Parallax Cards */}
-            <section className="py-24 px-4">
-                <div className="container mx-auto">
-                    <ParallaxSection offset={30}>
-                        <div className="text-center mb-16">
-                            <h2 className="text-3xl font-bold mb-4">Features that Empower You</h2>
-                            <p className="text-muted-foreground max-w-2xl mx-auto">
-                                Everything you need to achieve your goals and stay accountable
-                            </p>
-                        </div>
-                    </ParallaxSection>
+            {/* How It Works Section */}
+            <section className="py-24 px-4 relative">
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-secondary/20 to-transparent" />
+                <div className="container mx-auto relative">
+                    <motion.div 
+                        className="text-center mb-16"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                    >
+                        <span className="text-primary font-medium text-sm tracking-wider uppercase">How It Works</span>
+                        <h2 className="text-3xl md:text-4xl font-bold mt-3">Three Steps to Success</h2>
+                    </motion.div>
 
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {features.map((feature, index) => (
-                            <ParallaxSection key={index} offset={20 * (index + 1)}>
-                                <Card className="p-6 bg-card/50 backdrop-blur border-border/50 hover:bg-card/80 transition-colors">
-                                    <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                                        {feature.icon}
+                    <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                        {steps.map((step, index) => (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: index * 0.15 }}
+                            >
+                                <Card className="relative p-8 glass glass-hover h-full group">
+                                    <div className="absolute -top-4 -left-4 w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
+                                        <span className="text-sm font-bold text-primary">{index + 1}</span>
                                     </div>
-                                    <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                                    <p className="text-muted-foreground">{feature.description}</p>
+                                    <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary/20 to-accent/10 border border-primary/20 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                                        {step.icon}
+                                    </div>
+                                    <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
+                                    <p className="text-muted-foreground leading-relaxed">{step.description}</p>
                                 </Card>
-                            </ParallaxSection>
+                            </motion.div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* Why GoalForge Section with Parallax */}
-            <section className="py-24 bg-secondary/20 overflow-hidden">
-                <div className="container mx-auto px-4">
-                    <ParallaxSection offset={40}>
-                        <div className="max-w-3xl mx-auto text-center mb-16">
-                            <h2 className="text-3xl font-bold mb-4">Why Choose GoalForge?</h2>
-                            <p className="text-muted-foreground">
-                                We combine blockchain technology with proven goal-setting methodologies
-                            </p>
-                        </div>
-                    </ParallaxSection>
+            {/* Features Section */}
+            <section className="py-24 px-4">
+                <div className="container mx-auto">
+                    <motion.div 
+                        className="text-center mb-16"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                    >
+                        <span className="text-primary font-medium text-sm tracking-wider uppercase">Features</span>
+                        <h2 className="text-3xl md:text-4xl font-bold mt-3">Built for Achievers</h2>
+                        <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
+                            Everything you need to set, track, and crush your goals with blockchain-powered accountability
+                        </p>
+                    </motion.div>
 
-                    <div className="grid md:grid-cols-2 gap-12 items-center">
-                        <div className="space-y-6">
-                            {benefits.map((benefit, index) => (
-                                <ParallaxSection key={index} offset={15 * (index + 1)}>
-                                    <div className="flex gap-4">
-                                        <div className="h-6 w-6 text-primary mt-1">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+                        {features.map((feature, index) => (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: index * 0.1 }}
+                            >
+                                <Card className="p-6 glass glass-hover card-interactive h-full">
+                                    <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary/20 to-transparent border border-primary/20 flex items-center justify-center mb-4">
+                                        {feature.icon}
+                                    </div>
+                                    <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+                                </Card>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Why STICKIT Section */}
+            <section className="py-24 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5" />
+                <div className="container mx-auto px-4 relative">
+                    <div className="grid lg:grid-cols-2 gap-16 items-center">
+                        <motion.div
+                            initial={{ opacity: 0, x: -30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                        >
+                            <span className="text-primary font-medium text-sm tracking-wider uppercase">Why STICKIT?</span>
+                            <h2 className="text-3xl md:text-4xl font-bold mt-3 mb-6">
+                                Put Real Stakes Behind Your Goals
+                            </h2>
+                            <p className="text-muted-foreground mb-8 leading-relaxed">
+                                Research shows that financial commitment increases goal completion rates by up to 3x. 
+                                STICKIT combines this insight with blockchain technology to create unbreakable accountability.
+                            </p>
+                            
+                            <div className="space-y-5">
+                                {benefits.map((benefit, index) => (
+                                    <motion.div 
+                                        key={index} 
+                                        className="flex gap-4"
+                                        initial={{ opacity: 0, x: -20 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: index * 0.1 }}
+                                    >
+                                        <div className="h-6 w-6 text-primary flex-shrink-0 mt-0.5">
                                             <CheckCircle className="h-6 w-6" />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold mb-1">{benefit.title}</h3>
-                                            <p className="text-muted-foreground">{benefit.description}</p>
+                                            <h4 className="font-semibold mb-1">{benefit.title}</h4>
+                                            <p className="text-sm text-muted-foreground">{benefit.description}</p>
                                         </div>
-                                    </div>
-                                </ParallaxSection>
-                            ))}
-                        </div>
-                        <ParallaxSection offset={60}>
-                            <div className="aspect-square rounded-2xl bg-gradient-to-br from-primary/20 via-purple-500/20 to-blue-500/20 p-8">
-                                {/* Add illustration or image here */}
+                                    </motion.div>
+                                ))}
                             </div>
-                        </ParallaxSection>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, x: 30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                        >
+                            <div className="aspect-square rounded-3xl glass p-8 relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
+                                <div className="absolute top-8 right-8 w-24 h-24 bg-primary/30 rounded-full blur-2xl" />
+                                <div className="absolute bottom-8 left-8 w-32 h-32 bg-accent/20 rounded-full blur-3xl" />
+                                
+                                <div className="relative h-full flex flex-col justify-center items-center text-center">
+                                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-6 animate-pulse-glow">
+                                        <Zap className="h-10 w-10 text-background" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-2">Ready to Commit?</h3>
+                                    <p className="text-muted-foreground mb-6">Join thousands achieving their goals</p>
+                                    <Link href="/create">
+                                        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium">
+                                            Get Started Now
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </div>
+                        </motion.div>
                     </div>
                 </div>
             </section>
@@ -161,32 +304,94 @@ export default function Home() {
             {/* Testimonials Section */}
             <section className="py-24 px-4">
                 <div className="container mx-auto">
-                    <h2 className="text-3xl font-bold text-center mb-16">What Our Users Say</h2>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <motion.div 
+                        className="text-center mb-16"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                    >
+                        <span className="text-primary font-medium text-sm tracking-wider uppercase">Testimonials</span>
+                        <h2 className="text-3xl md:text-4xl font-bold mt-3">What Users Say</h2>
+                    </motion.div>
+
+                    <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
                         {testimonials.map((testimonial, index) => (
-                            <Card key={index} className="p-6 bg-card/50 backdrop-blur border-border/50">
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className="h-12 w-12 rounded-full bg-primary/20" />
-                                    <div>
-                                        <p className="font-semibold">{testimonial.name}</p>
-                                        <p className="text-sm text-muted-foreground">{testimonial.title}</p>
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: index * 0.1 }}
+                            >
+                                <Card className="p-6 glass glass-hover h-full">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center text-lg">
+                                            {testimonial.avatar}
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold">{testimonial.name}</p>
+                                            <p className="text-sm text-muted-foreground">{testimonial.title}</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <p className="text-muted-foreground">{testimonial.quote}</p>
-                            </Card>
+                                    <p className="text-muted-foreground leading-relaxed">&ldquo;{testimonial.quote}&rdquo;</p>
+                                </Card>
+                            </motion.div>
                         ))}
                     </div>
                 </div>
             </section>
 
+            {/* CTA Section */}
+            <section className="py-24 px-4">
+                <div className="container mx-auto">
+                    <motion.div 
+                        className="max-w-4xl mx-auto text-center glass rounded-3xl p-12 md:p-16 relative overflow-hidden"
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-accent/10" />
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary/20 rounded-full blur-[100px]" />
+                        
+                        <div className="relative">
+                            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Transform Your Goals?</h2>
+                            <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
+                                Join the community of achievers using STICKIT to turn aspirations into accomplishments.
+                            </p>
+                            <div className="flex flex-wrap gap-4 justify-center">
+                                <Link href="/create">
+                                    <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8">
+                                        Start for Free
+                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </Link>
+                                <Link href="/community">
+                                    <Button size="lg" variant="secondary" className="px-8 glass hover:bg-secondary/80">
+                                        Explore Community
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            </section>
+
             {/* Footer */}
-            <footer className="border-t border-border/40 bg-card/50 backdrop-blur">
+            <footer className="border-t border-border/40 bg-card/30 backdrop-blur">
                 <div className="container mx-auto px-4 py-16">
                     <div className="grid md:grid-cols-4 gap-8">
                         <div className="space-y-4">
-                            <h3 className="text-xl font-bold text-primary">GoalForge</h3>
-                            <p className="text-muted-foreground">
-                                Transforming goals into achievements through blockchain technology.
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                                    <Zap className="h-4 w-4 text-background" />
+                                </div>
+                                <span className="text-xl font-bold">
+                                    <span className="text-gradient">STICK</span>
+                                    <span className="text-foreground">IT</span>
+                                </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                Web3-powered accountability platform helping you achieve your goals through financial commitment.
                             </p>
                         </div>
                         {footerLinks.map((section, index) => (
@@ -197,7 +402,7 @@ export default function Home() {
                                         <li key={linkIndex}>
                                             <Link 
                                                 href={link.href} 
-                                                className="text-muted-foreground hover:text-primary transition-colors"
+                                                className="text-sm text-muted-foreground hover:text-primary transition-colors"
                                             >
                                                 {link.label}
                                             </Link>
@@ -207,8 +412,13 @@ export default function Home() {
                             </div>
                         ))}
                     </div>
-                    <div className="border-t border-border/40 mt-12 pt-8 text-center text-muted-foreground">
-                        <p>© 2024 GoalForge. All rights reserved.</p>
+                    <div className="border-t border-border/40 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
+                        <p>© 2024 STICKIT. All rights reserved.</p>
+                        <div className="flex gap-6">
+                            <Link href="#" className="hover:text-primary transition-colors">Privacy</Link>
+                            <Link href="#" className="hover:text-primary transition-colors">Terms</Link>
+                            <Link href="#" className="hover:text-primary transition-colors">Contact</Link>
+                        </div>
                     </div>
                 </div>
             </footer>
@@ -222,45 +432,69 @@ export default function Home() {
     );
 }
 
+const stats = [
+    { value: "10K+", label: "Goals Created" },
+    { value: "85%", label: "Success Rate" },
+    { value: "$2M+", label: "Rewards Earned" }
+];
+
+const steps = [
+    {
+        icon: <Target className="h-7 w-7 text-primary" />,
+        title: "Set Your Goal",
+        description: "Define what you want to achieve with clear milestones and a realistic deadline."
+    },
+    {
+        icon: <Lock className="h-7 w-7 text-primary" />,
+        title: "Stake Tokens",
+        description: "Put tokens at stake to create real accountability. Your commitment drives your success."
+    },
+    {
+        icon: <Trophy className="h-7 w-7 text-primary" />,
+        title: "Achieve & Earn",
+        description: "Complete your goal, get verified, and earn back your stake plus bonus rewards."
+    }
+];
+
 const features = [
     {
         icon: <Target className="h-6 w-6 text-primary" />,
-        title: "Smart Goal Setting",
-        description: "Create structured goals with clear milestones and deadlines using blockchain technology."
+        title: "Smart Goals",
+        description: "Create structured goals with clear milestones and blockchain verification."
     },
     {
         icon: <Shield className="h-6 w-6 text-primary" />,
-        title: "Stake Mechanism",
-        description: "Put your tokens at stake to strengthen your commitment to achieving goals."
+        title: "Secure Stakes",
+        description: "Your staked tokens are held securely in smart contracts until goal completion."
     },
     {
         icon: <Trophy className="h-6 w-6 text-primary" />,
-        title: "Reward System",
-        description: "Earn rewards and recognition upon successful completion of your goals."
+        title: "Earn Rewards",
+        description: "Complete goals to earn back your stake plus bonus tokens and achievement NFTs."
     },
     {
         icon: <Users className="h-6 w-6 text-primary" />,
-        title: "Community Verification",
-        description: "Get your achievements verified by trusted community members."
+        title: "Community",
+        description: "Get verified by trusted community members and support others on their journey."
     }
 ];
 
 const benefits = [
     {
-        title: "Transparent & Secure",
-        description: "All goals and achievements are recorded on the blockchain, ensuring complete transparency and security."
+        title: "Transparent & Immutable",
+        description: "All goals and achievements are recorded on-chain, creating a verifiable track record."
     },
     {
-        title: "Real Stakes, Real Commitment",
-        description: "Put your tokens at stake to create a tangible commitment to your goals."
+        title: "Real Financial Stakes",
+        description: "Token staking creates genuine commitment that traditional apps can't match."
     },
     {
-        title: "Community Driven",
-        description: "Join a community of goal-setters and get support from like-minded individuals."
+        title: "Community Verification",
+        description: "Trusted validators ensure fair and honest goal completion verification."
     },
     {
         title: "Earn While You Achieve",
-        description: "Get rewarded with tokens for completing your goals successfully."
+        description: "Successful goal completion rewards you with tokens and exclusive achievement NFTs."
     }
 ];
 
@@ -268,17 +502,20 @@ const testimonials = [
     {
         name: "Alex Thompson",
         title: "Fitness Enthusiast",
-        quote: "GoalForge helped me stay committed to my fitness goals. The staking mechanism really kept me accountable!"
+        avatar: "🏋️",
+        quote: "STICKIT changed everything. Having real money on the line kept me accountable when motivation faded."
     },
     {
         name: "Sarah Chen",
         title: "Entrepreneur",
-        quote: "The transparency and community support make GoalForge unique. It's not just about setting goals, it's about achieving them."
+        avatar: "🚀",
+        quote: "The community aspect is incredible. Knowing others are cheering you on makes all the difference."
     },
     {
         name: "Michael Roberts",
         title: "Developer",
-        quote: "As someone who loves blockchain technology, GoalForge is the perfect blend of utility and innovation."
+        avatar: "💻",
+        quote: "Finally, a goal app that actually works. The blockchain verification adds a layer of trust I've never seen before."
     }
 ];
 
@@ -297,7 +534,7 @@ const footerLinks = [
         links: [
             { label: "Documentation", href: "#" },
             { label: "Blog", href: "#" },
-            { label: "Community", href: "#" },
+            { label: "Community", href: "/community" },
             { label: "Support", href: "#" }
         ]
     },

@@ -11,40 +11,35 @@ const HABIT_TYPES = [
         title: "Level Up Your Coding Skills!",
         description: "Make one GitHub contribution daily",
         icon: "💻",
-        bgColor: "bg-[#0d1117]",
-        iconBg: "bg-[#161b22]"
+        gradient: "from-[#0d1117] to-[#161b22]"
     },
     {
         id: 1,
         title: "Master DSA Skills",
         description: "Solve one LeetCode problem daily",
         icon: "🧮",
-        bgColor: "bg-[#1a1625]",
-        iconBg: "bg-[#231c31]"
+        gradient: "from-[#1a1625] to-[#231c31]"
     },
     {
         id: 2,
         title: "Gym Training Goal",
         description: "Complete daily workout sessions",
         icon: "💪",
-        bgColor: "bg-[#1a1516]",
-        iconBg: "bg-[#231c1d]"
+        gradient: "from-[#1a1516] to-[#231c1d]"
     },
     {
         id: 3,
         title: "Daily Yoga Practice",
         description: "Complete one yoga session daily",
         icon: "🧘",
-        bgColor: "bg-[#151a16]",
-        iconBg: "bg-[#1c231d]"
+        gradient: "from-[#151a16] to-[#1c231d]"
     },
     {
         id: 4,
         title: "Running Challenge",
         description: "Achieve your daily running goals",
         icon: "🏃",
-        bgColor: "bg-[#1a1915]",
-        iconBg: "bg-[#23211c]"
+        gradient: "from-[#1a1915] to-[#23211c]"
     }
 ];
 
@@ -78,26 +73,30 @@ export function BrowseHabits() {
                     <motion.div
                         key={habit.id}
                         variants={item}
-                        whileHover={{ y: -4 }}
+                        whileHover={{ y: -4, scale: 1.01 }}
                         transition={{ duration: 0.2 }}
                     >
                         <Card 
-                            className={`cursor-pointer border-[#1f2937]/20 hover:border-primary/50 transition-all duration-300 ${habit.bgColor}`}
+                            className={`cursor-pointer glass glass-hover overflow-hidden`}
                             onClick={() => setSelectedHabit(habit.id)}
                         >
-                            <div className="p-6 space-y-4">
+                            <div className={`p-6 space-y-4 bg-gradient-to-br ${habit.gradient}`}>
                                 <div className="flex items-start gap-4">
-                                    <div className={`p-3 rounded-lg ${habit.iconBg} border border-[#1f2937]/20`}>
-                                        <span className="text-2xl">{habit.icon}</span>
+                                    <div className="p-3 rounded-xl glass border-primary/10">
+                                        <span className="text-3xl">{habit.icon}</span>
                                     </div>
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-white">
+                                    <div className="flex-1">
+                                        <h3 className="text-lg font-semibold mb-1">
                                             {habit.title}
                                         </h3>
-                                        <p className="text-sm text-gray-400">
+                                        <p className="text-sm text-muted-foreground">
                                             {habit.description}
                                         </p>
                                     </div>
+                                </div>
+                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                    <span>Click to start</span>
+                                    <span className="text-primary">→</span>
                                 </div>
                             </div>
                         </Card>
@@ -115,4 +114,4 @@ export function BrowseHabits() {
             )}
         </>
     );
-} 
+}

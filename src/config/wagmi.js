@@ -10,7 +10,7 @@ if (!projectId) {
 }
 
 export const config = getDefaultConfig({
-    appName: 'GoalForge',
+    appName: 'STICKIT',
     projectId: projectId || 'DEFAULT_PROJECT_ID', // Fallback for development
     chains: [avalancheFuji],
     transports: {

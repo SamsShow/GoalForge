@@ -6,7 +6,7 @@ import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { contractAddress } from '@/config/contractAddress';
 import abi from '@/config/abi.json';
-import { Activity, Trophy, Target, Medal, Plus } from 'lucide-react';
+import { Activity, Trophy, Target, Medal, Plus, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StatCard } from '@/components/dashboard/StatCard';
@@ -60,8 +60,12 @@ export default function Dashboard() {
                     className="flex items-center justify-center min-h-[60vh]"
                     {...fadeInUp}
                 >
-                    <Card className="p-8 bg-[#1a1a1a] border-[#333]">
-                        <p className="text-gray-400">Please connect your wallet to view your dashboard</p>
+                    <Card className="p-8 glass text-center max-w-md">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 border border-primary/20 mx-auto mb-4 flex items-center justify-center">
+                            <Zap className="h-8 w-8 text-primary" />
+                        </div>
+                        <h2 className="text-xl font-semibold mb-2">Connect Your Wallet</h2>
+                        <p className="text-muted-foreground">Please connect your wallet to view your dashboard and track your goals.</p>
                     </Card>
                 </motion.div>
             </Layout>
@@ -73,28 +77,28 @@ export default function Dashboard() {
             <div className="min-h-screen">
                 <div className="container mx-auto p-6 space-y-8">
                     {/* Header */}
-                    <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <motion.div
                             initial={{ opacity: 0, y: -20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="flex items-center gap-3"
+                            className="flex items-center gap-4"
                         >
-                            <div className="p-2 rounded-lg bg-[#2a2a2a] border border-[#333]">
+                            <div className="p-3 rounded-xl glass border-primary/20">
                                 <span role="img" aria-label="wave" className="text-2xl">👋</span>
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold text-white">Welcome back!</h1>
-                                <p className="text-gray-400">{address.slice(0, 6)}...{address.slice(-4)}</p>
+                                <h1 className="text-2xl font-bold">Welcome back!</h1>
+                                <p className="text-muted-foreground font-mono text-sm">{address.slice(0, 6)}...{address.slice(-4)}</p>
                             </div>
                         </motion.div>
                         
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
+                            initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                         >
                             <Button 
                                 onClick={() => setActiveTab('browse')}
-                                className="bg-primary hover:bg-primary/90 text-white gap-2"
+                                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium gap-2"
                             >
                                 <Plus className="w-4 h-4" />
                                 New Goal
@@ -110,16 +114,16 @@ export default function Dashboard() {
                         animate="animate"
                     >
                         <StatCard
-                            title="Active Habits"
+                            title="Active Goals"
                             value={activeHabits.length}
                             icon={<Activity className="w-5 h-5" />}
                             trend="+2 this week"
                         />
                         <StatCard
-                            title="Completed Habits"
+                            title="Completed"
                             value={completedHabits.length}
                             icon={<Trophy className="w-5 h-5" />}
-                            trend="80% success rate"
+                            trend="85% success"
                         />
                         <StatCard
                             title="Current Streak"
@@ -199,31 +203,31 @@ export default function Dashboard() {
 
                     {/* NFT Achievements Section */}
                     <section className="mt-8">
-                        <h2 className="text-2xl font-bold mb-4">Achievement NFTs</h2>
+                        <h2 className="text-2xl font-bold mb-6">Achievement NFTs</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                            <Card className="overflow-hidden glass glass-hover">
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-lg">{dummyNFT.name}</CardTitle>
                                     <CardDescription>Earned on {new Date(dummyNFT.dateEarned).toLocaleDateString()}</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <div className="relative aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20">
+                                    <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-primary/20 to-accent/10">
                                         <img 
                                             src={dummyNFT.image} 
                                             alt={dummyNFT.name}
                                             className="object-contain w-full h-full"
                                         />
-                                        <div className="absolute top-2 right-2">
-                                            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-primary to-purple-600 text-white shadow-lg">
+                                        <div className="absolute top-3 right-3">
+                                            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground">
                                                 {dummyNFT.attributes.find(a => a.trait_type === "Rarity")?.value}
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-3">
                                         <p className="text-sm text-muted-foreground">{dummyNFT.description}</p>
                                         <div className="grid grid-cols-2 gap-2">
                                             {dummyNFT.attributes.map((attr, idx) => (
-                                                <div key={idx} className="bg-muted/50 rounded-lg p-2">
+                                                <div key={idx} className="glass rounded-lg p-3">
                                                     <p className="text-xs text-muted-foreground">{attr.trait_type}</p>
                                                     <p className="text-sm font-medium">{attr.value}</p>
                                                 </div>
@@ -240,7 +244,6 @@ export default function Dashboard() {
     );
 }
 
-// Loading state component
 function LoadingGrid() {
     return (
         <motion.div 
@@ -254,9 +257,9 @@ function LoadingGrid() {
                     key={i}
                     variants={fadeInUp}
                 >
-                    <Card className="p-6 bg-[#1a1a1a] border-[#333] animate-pulse">
-                        <div className="h-4 bg-[#2a2a2a] rounded w-3/4 mb-4" />
-                        <div className="h-4 bg-[#2a2a2a] rounded w-1/2" />
+                    <Card className="p-6 glass animate-pulse">
+                        <div className="h-4 bg-secondary rounded w-3/4 mb-4" />
+                        <div className="h-4 bg-secondary rounded w-1/2" />
                     </Card>
                 </motion.div>
             ))}
@@ -264,34 +267,33 @@ function LoadingGrid() {
     );
 }
 
-// Empty state component
 function EmptyState({ setActiveTab }) {
     return (
         <motion.div {...fadeInUp}>
-            <Card className="p-8 bg-[#1a1a1a] border-[#333] text-center">
+            <Card className="p-10 glass text-center max-w-lg mx-auto">
                 <motion.div 
-                    className="p-4 rounded-full bg-[#2a2a2a] border border-[#333] w-16 h-16 mx-auto mb-4 flex items-center justify-center"
+                    className="p-4 rounded-2xl glass border-primary/20 w-20 h-20 mx-auto mb-6 flex items-center justify-center"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
                 >
-                    <span role="img" aria-label="sparkles" className="text-2xl">✨</span>
+                    <Target className="h-10 w-10 text-primary" />
                 </motion.div>
                 <motion.h3 
-                    className="text-lg font-semibold text-white mb-2"
+                    className="text-xl font-semibold mb-2"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                 >
-                    No Active Habits
+                    No Active Goals Yet
                 </motion.h3>
                 <motion.p 
-                    className="text-gray-400 mb-6"
+                    className="text-muted-foreground mb-6"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4 }}
                 >
-                    Start your journey by creating a new habit
+                    Start your journey by creating your first goal. Put some skin in the game!
                 </motion.p>
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -300,9 +302,9 @@ function EmptyState({ setActiveTab }) {
                 >
                     <Button 
                         onClick={() => setActiveTab('browse')}
-                        className="bg-primary hover:bg-primary/90 text-white"
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                     >
-                        Browse Habits
+                        Browse Goals
                     </Button>
                 </motion.div>
             </Card>
@@ -310,19 +312,18 @@ function EmptyState({ setActiveTab }) {
     );
 }
 
-// NFT card component
 function NFTCard({ tokenId }) {
     return (
         <motion.div variants={fadeInUp}>
-            <Card className="p-4 bg-[#1a1a1a] border-[#333] group">
+            <Card className="p-4 glass glass-hover group">
                 <motion.div 
-                    className="aspect-square rounded-lg bg-[#2a2a2a] border border-[#333] flex items-center justify-center mb-3"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
+                    className="aspect-square rounded-xl glass flex items-center justify-center mb-3"
+                    whileHover={{ scale: 1.02 }}
                     transition={{ type: "spring", stiffness: 300 }}
                 >
-                    <span className="text-4xl">🏆</span>
+                    <span className="text-5xl">🏆</span>
                 </motion.div>
-                <p className="text-center text-sm text-gray-400">Achievement #{tokenId.toString()}</p>
+                <p className="text-center text-sm text-muted-foreground">Achievement #{tokenId.toString()}</p>
             </Card>
         </motion.div>
     );
