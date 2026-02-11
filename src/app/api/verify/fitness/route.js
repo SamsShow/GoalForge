@@ -11,6 +11,23 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const action = searchParams.get("action");
 
+  if (action === "status") {
+    const cookies = request.headers.get("cookie") || "";
+    const connected =
+      /google_fit_access_token=([^;]+)/.test(cookies) ||
+      /google_fit_refresh_token=([^;]+)/.test(cookies);
+
+    return NextResponse.json({
+      configured: Boolean(GOOGLE_CLIENT_ID),
+      connected,
+      message: !GOOGLE_CLIENT_ID
+        ? "Google Fit is not configured. Use LLM proof verification instead."
+        : connected
+          ? "Google Fit is connected"
+          : "Google Fit is configured but not connected",
+    });
+  }
+
   if (action === "auth") {
     // Start Google Fit OAuth2 flow
     if (!GOOGLE_CLIENT_ID) {

@@ -26,6 +26,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAccount } from "wagmi";
 import {
   verifyTask,
   getProofHint,
@@ -33,6 +34,8 @@ import {
   getHabitName,
   isAutoVerifiable,
   needsFitnessTracker,
+  checkFitnessConnection,
+  getGoogleFitAuthUrl,
 } from "@/lib/verification";
 
 const VERIFICATION_STATES = {
@@ -52,12 +55,15 @@ export function ProofSubmissionModal({
   habitIndex,
   onVerified,
 }) {
+  const { address } = useAccount();
   const [proofText, setProofText] = useState("");
   const [verificationState, setVerificationState] = useState(
     VERIFICATION_STATES.IDLE
   );
   const [verificationResult, setVerificationResult] = useState(null);
   const [verificationSteps, setVerificationSteps] = useState([]);
+  const [fitnessStatus, setFitnessStatus] = useState(null);
+  const [isFitnessStatusLoading, setIsFitnessStatusLoading] = useState(false);
 
   const habitType = Number(habit?.habitType);
   const username = habit?.username || "";
@@ -68,8 +74,27 @@ export function ProofSubmissionModal({
       setVerificationState(VERIFICATION_STATES.IDLE);
       setVerificationResult(null);
       setVerificationSteps([]);
+      setFitnessStatus(null);
+      setIsFitnessStatusLoading(false);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    const loadFitnessStatus = async () => {
+      if (!isOpen || !needsFitnessTracker(habitType)) return;
+      try {
+        setIsFitnessStatusLoading(true);
+        const status = await checkFitnessConnection();
+        setFitnessStatus(status);
+      } catch (error) {
+        setFitnessStatus({ configured: false, connected: false });
+      } finally {
+        setIsFitnessStatusLoading(false);
+      }
+    };
+
+    loadFitnessStatus();
+  }, [isOpen, habitType]);
 
   const addStep = (step) => {
     setVerificationSteps((prev) => [...prev, step]);
@@ -111,7 +136,7 @@ export function ProofSubmissionModal({
         habitType,
         username,
         proofText: proofText.trim(),
-        walletAddress: null,
+        walletAddress: address || null,
       });
 
       setVerificationResult(result);
@@ -188,6 +213,15 @@ export function ProofSubmissionModal({
     VERIFICATION_STATES.VERIFYING_LLM,
   ].includes(verificationState);
 
+  const handleConnectGoogleFit = () => {
+    if (!address) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+
+    window.location.href = getGoogleFitAuthUrl(address);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] overflow-hidden bg-black/40 backdrop-blur-xl border-white/10">
@@ -231,9 +265,32 @@ export function ProofSubmissionModal({
             {needsFitnessTracker(habitType) && (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-[#2a2a2a] border border-[#333]">
                 <Activity className="h-4 w-4 text-green-400/70" />
-                <span className="text-sm text-white/70">
-                  Google Fit data will be checked if connected. Otherwise, describe your activity below.
-                </span>
+                <div className="flex-1">
+                  <div className="text-sm text-white/70">
+                    Google Fit data will be checked if connected. Otherwise, describe your activity below.
+                  </div>
+                  {fitnessStatus?.configured === false && (
+                    <div className="text-xs text-white/50 mt-1">
+                      Google Fit isn’t configured for this app.
+                    </div>
+                  )}
+                </div>
+
+                {fitnessStatus?.configured !== false && !fitnessStatus?.connected && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleConnectGoogleFit}
+                    disabled={isLoading || isFitnessStatusLoading}
+                    className="bg-white/5 hover:bg-white/10 border-white/10"
+                  >
+                    Connect
+                  </Button>
+                )}
+
+                {fitnessStatus?.connected && (
+                  <div className="text-xs text-green-300/80">Connected</div>
+                )}
               </div>
             )}
 

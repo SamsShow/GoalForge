@@ -67,6 +67,7 @@ export function HabitCard({ habit, index }) {
                 abi: abi,
                 functionName: "checkInHabit",
                 args: [BigInt(habitIndex), true],
+                gas: 800000n, // completeGoal does transfers + mint + NFT mint - needs higher limit
             });
 
             toast.success("Verified! Transaction submitted...");
