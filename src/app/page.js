@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ArrowRight, Target, Shield, Trophy, Users, CheckCircle, LayoutDashboard, Zap, Sparkles, TrendingUp, Lock } from 'lucide-react';
+import { ArrowRight, Target, Shield, Trophy, Users, CheckCircle, LayoutDashboard, Zap, Sparkles, TrendingUp, Lock, BookOpen } from 'lucide-react';
 import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
 import { contractAddress } from '@/config/contractAddress';
 import abi from '@/config/abi.json';
@@ -98,46 +98,63 @@ export default function Home() {
                             variants={fadeIn}
                             className="flex flex-wrap gap-4 justify-center mt-10"
                         >
-                            {!address ? (
-                                <Button 
-                                    size="lg" 
-                                    className="gap-2 text-base bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12"
+                            <>
+                                {!address ? (
+                                    <Button 
+                                        size="lg" 
+                                        className="gap-2 text-base bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12"
+                                    >
+                                        Connect Wallet
+                                        <ArrowRight className="h-4 w-4" />
+                                    </Button>
+                                ) : !hasOnboarded ? (
+                                    <Button 
+                                        size="lg" 
+                                        className="gap-2 text-base bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12"
+                                        onClick={handleStartJourney}
+                                    >
+                                        Start Your Journey
+                                        <ArrowRight className="h-4 w-4" />
+                                    </Button>
+                                ) : (
+                                    <>
+                                        <Link href="/create">
+                                            <Button 
+                                                size="lg" 
+                                                className="gap-2 text-base bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12"
+                                            >
+                                                Create Goal
+                                                <ArrowRight className="h-4 w-4" />
+                                            </Button>
+                                        </Link>
+                                        <Link href="/dashboard">
+                                            <Button 
+                                                variant="secondary" 
+                                                size="lg" 
+                                                className="text-base gap-2 px-8 h-12 glass hover:bg-secondary/80"
+                                            >
+                                                <LayoutDashboard className="h-4 w-4" />
+                                                Dashboard
+                                            </Button>
+                                        </Link>
+                                    </>
+                                )}
+
+                                <Link
+                                    href="https://github.com/SamsShow/GoalForge/tree/main/docs"
+                                    target="_blank"
+                                    rel="noreferrer"
                                 >
-                                    Connect Wallet
-                                    <ArrowRight className="h-4 w-4" />
-                                </Button>
-                            ) : !hasOnboarded ? (
-                                <Button 
-                                    size="lg" 
-                                    className="gap-2 text-base bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12"
-                                    onClick={handleStartJourney}
-                                >
-                                    Start Your Journey
-                                    <ArrowRight className="h-4 w-4" />
-                                </Button>
-                            ) : (
-                                <>
-                                    <Link href="/create">
-                                        <Button 
-                                            size="lg" 
-                                            className="gap-2 text-base bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 h-12"
-                                        >
-                                            Create Goal
-                                            <ArrowRight className="h-4 w-4" />
-                                        </Button>
-                                    </Link>
-                                    <Link href="/dashboard">
-                                        <Button 
-                                            variant="secondary" 
-                                            size="lg" 
-                                            className="text-base gap-2 px-8 h-12 glass hover:bg-secondary/80"
-                                        >
-                                            <LayoutDashboard className="h-4 w-4" />
-                                            Dashboard
-                                        </Button>
-                                    </Link>
-                                </>
-                            )}
+                                    <Button
+                                        variant="secondary"
+                                        size="lg"
+                                        className="text-base gap-2 px-8 h-12 glass hover:bg-secondary/80"
+                                    >
+                                        <BookOpen className="h-4 w-4" />
+                                        Documentation
+                                    </Button>
+                                </Link>
+                            </>
                         </motion.div>
 
                         {/* Stats */}
@@ -399,6 +416,9 @@ export default function Home() {
                             <p className="text-sm text-muted-foreground leading-relaxed">
                                 Web3-powered accountability platform helping you achieve your goals through financial commitment.
                             </p>
+                            <p className="text-xs text-muted-foreground/60 mt-2">
+                                Final Year Project — B.Tech Computer Science
+                            </p>
                         </div>
                         {footerLinks.map((section, index) => (
                             <div key={index} className="space-y-4">
@@ -419,11 +439,11 @@ export default function Home() {
                         ))}
                     </div>
                     <div className="border-t border-border/40 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-                        <p>© 2024 STICKIT. All rights reserved.</p>
+                        <p>© 2025–2026 STICKIT. All rights reserved.</p>
                         <div className="flex gap-6">
-                            <Link href="#" className="hover:text-primary transition-colors">Privacy</Link>
-                            <Link href="#" className="hover:text-primary transition-colors">Terms</Link>
-                            <Link href="#" className="hover:text-primary transition-colors">Contact</Link>
+                            <Link href="/about" className="hover:text-primary transition-colors">About</Link>
+                            <Link href="https://github.com/SamsShow/GoalForge/tree/main/docs" className="hover:text-primary transition-colors">Documentation</Link>
+                            <Link href="https://github.com/SamsShow/GoalForge" className="hover:text-primary transition-colors">GitHub</Link>
                         </div>
                     </div>
                 </div>
@@ -531,26 +551,26 @@ const footerLinks = [
         links: [
             { label: "Features", href: "#" },
             { label: "How it Works", href: "#" },
-            { label: "Pricing", href: "#" },
-            { label: "FAQ", href: "#" }
+            { label: "Create a Goal", href: "/create" },
+            { label: "Dashboard", href: "/dashboard" }
         ]
     },
     {
         title: "Resources",
         links: [
-            { label: "Documentation", href: "#" },
-            { label: "Blog", href: "#" },
-            { label: "Community", href: "/community" },
-            { label: "Support", href: "#" }
+            { label: "Documentation", href: "https://github.com/SamsShow/GoalForge/tree/main/docs" },
+            { label: "Architecture", href: "https://github.com/SamsShow/GoalForge/blob/main/docs/ARCHITECTURE.md" },
+            { label: "API Reference", href: "https://github.com/SamsShow/GoalForge/blob/main/docs/API.md" },
+            { label: "Community", href: "/community" }
         ]
     },
     {
-        title: "Company",
+        title: "Project",
         links: [
-            { label: "About", href: "#" },
-            { label: "Careers", href: "#" },
-            { label: "Contact", href: "#" },
-            { label: "Privacy Policy", href: "#" }
+            { label: "About", href: "/about" },
+            { label: "SRS Document", href: "https://github.com/SamsShow/GoalForge/blob/main/docs/SRS.md" },
+            { label: "Data Model", href: "https://github.com/SamsShow/GoalForge/blob/main/docs/ER_DIAGRAM.md" },
+            { label: "GitHub", href: "https://github.com/SamsShow/GoalForge" }
         ]
     }
 ];

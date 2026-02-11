@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, Bell, Menu, LayoutDashboard, Users } from 'lucide-react';
+import { Search, Plus, Bell, Menu, LayoutDashboard, Users, Info } from 'lucide-react';
 
 export default function Navbar() {
     return (
@@ -55,6 +55,16 @@ export default function Navbar() {
                                 className="text-muted-foreground hover:text-foreground hover:bg-secondary/80"
                             >
                                 <Users className="h-5 w-5" />
+                            </Button>
+                        </Link>
+
+                        <Link href="/about">
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="text-muted-foreground hover:text-foreground hover:bg-secondary/80"
+                            >
+                                <Info className="h-5 w-5" />
                             </Button>
                         </Link>
                         
