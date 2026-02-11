@@ -1,7 +1,7 @@
 import '@rainbow-me/rainbowkit/styles.css';
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { http, createConfig } from 'viem';
-import { avalancheFuji } from 'wagmi/chains';
+import { http } from 'viem';
+import { baseSepolia, hardhat } from 'wagmi/chains';
 
 const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_ID;
 
@@ -10,11 +10,12 @@ if (!projectId) {
 }
 
 export const config = getDefaultConfig({
-    appName: 'STICKIT',
-    projectId: projectId || 'DEFAULT_PROJECT_ID', // Fallback for development
-    chains: [avalancheFuji],
-    transports: {
-        [avalancheFuji.id]: http()
-    },
-    ssr: true,
-}); 
+  appName: 'STICKIT',
+  projectId: projectId || 'DEFAULT_PROJECT_ID', // Fallback for development
+  chains: [(process.env.NEXT_PUBLIC_CHAIN || 'hardhat') === 'baseSepolia' ? baseSepolia : hardhat],
+  transports: {
+    [baseSepolia.id]: http(),
+    [hardhat.id]: http('http://127.0.0.1:8545'),
+  },
+  ssr: true,
+});

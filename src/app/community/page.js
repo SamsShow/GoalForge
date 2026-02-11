@@ -1,155 +1,200 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useContractRead } from 'wagmi';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { Search, Filter, TrendingUp, Target, Clock, Users, Award, BookmarkPlus, ChevronRight, Zap } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
+import { Search, Filter, TrendingUp, Target, Clock, Users, Award, ChevronRight, Zap, Loader2, Flame, CheckCircle2, Heart } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import Link from 'next/link';
+import { contractAddress } from '@/config/contractAddress';
+import abi from '@/config/abi.json';
+import { getHabitIcon } from '@/lib/utils';
 
-const recentGoals = [
-    {
-        id: 1,
-        user: {
-            name: "Alex Thompson",
-            avatar: "🎯",
-            level: "Goal Setter"
-        },
-        title: "Complete Advanced React Course",
-        description: "Master React hooks, context API, and Redux through practical projects",
-        category: "Learning",
-        progress: 65,
-        duration: "30 days",
-        supporters: 12,
-        startDate: "2024-01-15",
-        milestones: ["Basic Hooks", "Context API", "Redux", "Testing"],
-        isBookmarked: false
-    },
-    {
-        id: 2,
-        user: {
-            name: "Sarah Chen",
-            avatar: "💪",
-            level: "Achievement Hunter"
-        },
-        title: "Run 5K Marathon",
-        description: "Train progressively to complete a 5K marathon with proper form and timing",
-        category: "Fitness",
-        progress: 40,
-        duration: "60 days",
-        supporters: 24,
-        startDate: "2024-01-10",
-        milestones: ["1K Practice", "2K Achievement", "3K Milestone", "Final 5K"],
-        isBookmarked: true
-    },
-    {
-        id: 3,
-        user: {
-            name: "David Park",
-            avatar: "💻",
-            level: "Code Warrior"
-        },
-        title: "100 Days of Code Challenge",
-        description: "Code every single day for 100 days to build consistency and skills",
-        category: "Coding",
-        progress: 78,
-        duration: "100 days",
-        supporters: 45,
-        startDate: "2024-01-01",
-        milestones: ["Day 25", "Day 50", "Day 75", "Day 100"],
-        isBookmarked: false
-    }
-];
-
-const trendingCategories = [
-    { name: "Fitness", goals: 2345, icon: "💪" },
-    { name: "Learning", goals: 1892, icon: "📚" },
-    { name: "Finance", goals: 1654, icon: "💰" },
-    { name: "Career", goals: 1432, icon: "🚀" },
-    { name: "Health", goals: 987, icon: "🧘" }
-];
+const HABIT_CATEGORIES = ['Coding', 'DSA', 'Gym', 'Yoga', 'Running'];
 
 export default function Community() {
-    const [activeFilter, setActiveFilter] = useState('recent');
+    const [activeFilter, setActiveFilter] = useState('all');
+
+    const { data: allGoals, isLoading } = useContractRead({
+        address: contractAddress,
+        abi,
+        functionName: 'getAllGoals',
+        watch: true,
+    });
+
+    // Process goals and compute stats
+    const { goals, stats, categoryStats } = useMemo(() => {
+        if (!allGoals || allGoals.length === 0) {
+            return { goals: [], stats: { total: 0, completed: 0, active: 0, totalStaked: 0 }, categoryStats: [] };
+        }
+
+        const processed = allGoals.map((goal, index) => {
+            const progress = Number(goal.progress);
+            const totalDays = Number(goal.totalDays);
+            const progressPct = totalDays > 0 ? Math.round((progress / totalDays) * 100) : 0;
+
+            return {
+                id: index,
+                user: goal.user,
+                username: goal.username || `${goal.user.slice(0, 6)}...${goal.user.slice(-4)}`,
+                title: goal.title,
+                description: goal.description,
+                habitType: Number(goal.habitType),
+                category: HABIT_CATEGORIES[Number(goal.habitType)] || 'Other',
+                progress,
+                totalDays,
+                progressPct,
+                stake: Number(goal.stake) / 1e18,
+                livesLeft: Number(goal.livesLeft),
+                currentStreak: Number(goal.currentStreak),
+                completed: goal.completed,
+                verified: goal.verified,
+                startDate: new Date(Number(goal.startDate) * 1000),
+                endDate: new Date(Number(goal.endDate) * 1000),
+            };
+        });
+
+        // Filter
+        let filtered = processed;
+        if (activeFilter === 'active') {
+            filtered = processed.filter(g => !g.completed && !g.verified);
+        } else if (activeFilter === 'completed') {
+            filtered = processed.filter(g => g.completed);
+        } else if (activeFilter !== 'all') {
+            filtered = processed.filter(g => g.category.toLowerCase() === activeFilter);
+        }
+
+        // Sort by start date (most recent first)
+        filtered.sort((a, b) => b.startDate - a.startDate);
+
+        // Stats
+        const total = processed.length;
+        const completed = processed.filter(g => g.completed).length;
+        const active = processed.filter(g => !g.completed && !g.verified).length;
+        const totalStaked = processed.reduce((sum, g) => sum + g.stake, 0);
+        const uniqueUsers = new Set(processed.map(g => g.user)).size;
+
+        // Category breakdown
+        const catMap = {};
+        processed.forEach(g => {
+            catMap[g.category] = (catMap[g.category] || 0) + 1;
+        });
+        const categoryStats = Object.entries(catMap)
+            .map(([name, count]) => ({
+                name,
+                goals: count,
+                icon: getHabitIcon(HABIT_CATEGORIES.indexOf(name)),
+            }))
+            .sort((a, b) => b.goals - a.goals);
+
+        return {
+            goals: filtered,
+            stats: { total, completed, active, totalStaked, uniqueUsers },
+            categoryStats,
+        };
+    }, [allGoals, activeFilter]);
 
     return (
         <Layout>
             <div className="container mx-auto p-6">
                 {/* Header */}
-                <motion.div 
+                <motion.div
                     className="mb-8"
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                 >
                     <h1 className="text-3xl font-bold mb-2">Community</h1>
-                    <p className="text-muted-foreground">Discover what others are achieving and get inspired</p>
+                    <p className="text-muted-foreground">Discover what others are achieving on-chain</p>
                 </motion.div>
 
                 <div className="grid grid-cols-12 gap-6">
                     {/* Goals Column */}
                     <div className="col-span-12 lg:col-span-8 space-y-6">
                         {/* Filters */}
-                        <motion.div 
+                        <motion.div
                             className="flex items-center gap-3 flex-wrap"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
                         >
-                            <Button 
-                                onClick={() => setActiveFilter('recent')}
-                                className={`rounded-full ${
-                                    activeFilter === 'recent' 
-                                        ? 'bg-primary text-primary-foreground' 
-                                        : 'glass text-muted-foreground hover:text-foreground'
-                                }`}
-                            >
-                                <Clock className="h-4 w-4 mr-2" />
-                                Recent
-                            </Button>
-                            <Button 
-                                onClick={() => setActiveFilter('trending')}
-                                className={`rounded-full ${
-                                    activeFilter === 'trending' 
-                                        ? 'bg-primary text-primary-foreground' 
-                                        : 'glass text-muted-foreground hover:text-foreground'
-                                }`}
-                            >
-                                <TrendingUp className="h-4 w-4 mr-2" />
-                                Trending
-                            </Button>
-                            <div className="flex-1" />
-                            <Button className="glass text-muted-foreground hover:text-foreground rounded-full">
-                                <Filter className="h-4 w-4 mr-2" />
-                                Filters
-                            </Button>
+                            {['all', 'active', 'completed'].map(filter => (
+                                <Button
+                                    key={filter}
+                                    onClick={() => setActiveFilter(filter)}
+                                    className={`rounded-full capitalize ${activeFilter === filter
+                                            ? 'bg-primary text-primary-foreground'
+                                            : 'glass text-muted-foreground hover:text-foreground'
+                                        }`}
+                                >
+                                    {filter === 'all' && <Users className="h-4 w-4 mr-2" />}
+                                    {filter === 'active' && <Clock className="h-4 w-4 mr-2" />}
+                                    {filter === 'completed' && <Award className="h-4 w-4 mr-2" />}
+                                    {filter}
+                                </Button>
+                            ))}
                         </motion.div>
+
+                        {/* Loading State */}
+                        {isLoading && (
+                            <div className="flex items-center justify-center py-20">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            </div>
+                        )}
+
+                        {/* Empty State */}
+                        {!isLoading && goals.length === 0 && (
+                            <Card className="p-10 glass text-center">
+                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 border border-primary/20 mx-auto mb-4 flex items-center justify-center">
+                                    <Target className="h-8 w-8 text-primary" />
+                                </div>
+                                <h3 className="text-lg font-semibold mb-2">No Goals Yet</h3>
+                                <p className="text-muted-foreground text-sm mb-4">
+                                    Be the first to create a goal and start the community!
+                                </p>
+                                <Link href="/dashboard">
+                                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                                        Create First Goal
+                                    </Button>
+                                </Link>
+                            </Card>
+                        )}
 
                         {/* Goals List */}
                         <div className="space-y-4">
-                            {recentGoals.map((goal, index) => (
+                            {goals.map((goal, index) => (
                                 <motion.div
                                     key={goal.id}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.1 * (index + 1) }}
+                                    transition={{ delay: 0.05 * (index + 1) }}
                                 >
                                     <Card className="p-6 glass glass-hover">
                                         {/* User Info */}
                                         <div className="flex items-start gap-4 mb-4">
                                             <div className="p-3 rounded-xl glass border-primary/10">
-                                                <span className="text-2xl">{goal.user.avatar}</span>
+                                                <span className="text-2xl">{getHabitIcon(goal.habitType)}</span>
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center justify-between">
                                                     <div>
-                                                        <h3 className="font-medium">{goal.user.name}</h3>
-                                                        <p className="text-sm text-muted-foreground">{goal.user.level}</p>
+                                                        <h3 className="font-medium">{goal.username}</h3>
+                                                        <p className="text-sm text-muted-foreground font-mono">
+                                                            {goal.user.slice(0, 6)}...{goal.user.slice(-4)}
+                                                        </p>
                                                     </div>
-                                                    <span className="px-3 py-1 rounded-full glass text-sm text-primary font-medium">
-                                                        {goal.category}
-                                                    </span>
+                                                    <div className="flex items-center gap-2">
+                                                        {goal.completed && (
+                                                            <span className="px-3 py-1 rounded-full bg-[hsl(var(--success))]/20 text-[hsl(var(--success))] text-xs font-medium">
+                                                                <CheckCircle2 className="inline-block h-3 w-3 mr-1" />
+                                                                Completed
+                                                            </span>
+                                                        )}
+                                                        <span className="px-3 py-1 rounded-full glass text-sm text-primary font-medium">
+                                                            {goal.category}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -164,51 +209,39 @@ export default function Community() {
                                         <div className="space-y-2 mb-4">
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-muted-foreground">Progress</span>
-                                                <span className="font-medium">{goal.progress}%</span>
+                                                <span className="font-medium">{goal.progress}/{goal.totalDays} days ({goal.progressPct}%)</span>
                                             </div>
                                             <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                                                <motion.div 
+                                                <motion.div
                                                     className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
                                                     initial={{ width: 0 }}
-                                                    animate={{ width: `${goal.progress}%` }}
-                                                    transition={{ duration: 1, delay: 0.2 * index }}
+                                                    animate={{ width: `${goal.progressPct}%` }}
+                                                    transition={{ duration: 1, delay: 0.1 * index }}
                                                 />
                                             </div>
                                         </div>
 
-                                        {/* Milestones */}
-                                        <div className="mb-4">
-                                            <div className="flex gap-2 overflow-x-auto pb-2">
-                                                {goal.milestones.map((milestone, idx) => (
-                                                    <span 
-                                                        key={idx}
-                                                        className="px-3 py-1 rounded-full glass text-xs text-muted-foreground whitespace-nowrap"
-                                                    >
-                                                        {milestone}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Stats & Actions */}
+                                        {/* Stats */}
                                         <div className="flex items-center justify-between text-muted-foreground">
-                                            <div className="flex items-center gap-6 text-sm">
-                                                <div className="flex items-center gap-2">
-                                                    <Clock className="h-4 w-4" />
-                                                    <span>{goal.duration}</span>
+                                            <div className="flex items-center gap-4 text-sm">
+                                                <div className="flex items-center gap-1.5">
+                                                    <Flame className="h-4 w-4 text-amber-500" />
+                                                    <span>{goal.currentStreak} streak</span>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Users className="h-4 w-4" />
-                                                    <span>{goal.supporters} supporters</span>
+                                                <div className="flex items-center gap-1.5">
+                                                    <Target className="h-4 w-4" />
+                                                    <span>{goal.stake.toFixed(1)} GOAL staked</span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <div className="flex items-center gap-1">
+                                                        {Array.from({ length: Math.min(goal.livesLeft, 5) }).map((_, lifeIndex) => (
+                                                            <Heart key={lifeIndex} className="h-3.5 w-3.5 text-rose-500 fill-current" />
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <button className={`p-2 rounded-lg glass hover:text-primary transition-colors ${goal.isBookmarked ? 'text-primary' : ''}`}>
-                                                    <BookmarkPlus className="h-4 w-4" />
-                                                </button>
-                                                <button className="p-2 rounded-lg glass hover:text-foreground transition-colors">
-                                                    <ChevronRight className="h-4 w-4" />
-                                                </button>
+                                            <div className="text-xs text-muted-foreground">
+                                                Started {goal.startDate.toLocaleDateString()}
                                             </div>
                                         </div>
                                     </Card>
@@ -235,7 +268,7 @@ export default function Community() {
                                     <p className="text-sm text-muted-foreground mb-4">
                                         Create your own goal and join the community of achievers.
                                     </p>
-                                    <Link href="/create">
+                                    <Link href="/dashboard">
                                         <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium">
                                             Create New Goal
                                         </Button>
@@ -244,59 +277,65 @@ export default function Community() {
                             </Card>
                         </motion.div>
 
-                        {/* Categories */}
+                        {/* On-Chain Categories */}
                         <motion.div
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.3 }}
                         >
                             <Card className="p-6 glass">
-                                <h3 className="font-semibold mb-4">Popular Categories</h3>
+                                <h3 className="font-semibold mb-4">Goal Categories</h3>
                                 <div className="space-y-3">
-                                    {trendingCategories.map((category, index) => (
-                                        <div 
+                                    {categoryStats.length > 0 ? categoryStats.map((category, index) => (
+                                        <button
                                             key={index}
-                                            className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary/50 transition-colors cursor-pointer"
+                                            onClick={() => setActiveFilter(category.name.toLowerCase())}
+                                            className={`w-full flex items-center justify-between p-2 rounded-lg transition-colors ${activeFilter === category.name.toLowerCase()
+                                                    ? 'bg-primary/10 border border-primary/20'
+                                                    : 'hover:bg-secondary/50'
+                                                }`}
                                         >
                                             <div className="flex items-center gap-3">
                                                 <span className="text-lg">{category.icon}</span>
                                                 <span className="font-medium">{category.name}</span>
                                             </div>
-                                            <span className="text-sm text-muted-foreground">{category.goals.toLocaleString()}</span>
-                                        </div>
-                                    ))}
+                                            <span className="text-sm text-muted-foreground">{category.goals} goals</span>
+                                        </button>
+                                    )) : (
+                                        <p className="text-sm text-muted-foreground text-center py-4">No goals created yet</p>
+                                    )}
                                 </div>
                             </Card>
                         </motion.div>
 
-                        {/* Community Stats */}
+                        {/* Community Stats (Real Data) */}
                         <motion.div
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.4 }}
                         >
                             <Card className="p-6 glass">
-                                <h3 className="font-semibold mb-4">Community Stats</h3>
+                                <h3 className="font-semibold mb-4">On-Chain Stats</h3>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="p-4 rounded-xl glass text-center">
+                                        <Target className="h-6 w-6 text-primary mx-auto mb-2" />
+                                        <div className="text-xl font-bold">{stats.total}</div>
+                                        <div className="text-xs text-muted-foreground">Total Goals</div>
+                                    </div>
+                                    <div className="p-4 rounded-xl glass text-center">
                                         <Award className="h-6 w-6 text-primary mx-auto mb-2" />
-                                        <div className="text-xl font-bold">2,456</div>
-                                        <div className="text-xs text-muted-foreground">Goals Completed</div>
+                                        <div className="text-xl font-bold">{stats.completed}</div>
+                                        <div className="text-xs text-muted-foreground">Completed</div>
                                     </div>
                                     <div className="p-4 rounded-xl glass text-center">
-                                        <Users className="h-6 w-6 text-primary mx-auto mb-2" />
-                                        <div className="text-xl font-bold">12.5K</div>
-                                        <div className="text-xs text-muted-foreground">Active Users</div>
-                                    </div>
-                                    <div className="p-4 rounded-xl glass text-center">
-                                        <Target className="h-6 w-6 text-accent mx-auto mb-2" />
-                                        <div className="text-xl font-bold">85%</div>
-                                        <div className="text-xs text-muted-foreground">Success Rate</div>
+                                        <Users className="h-6 w-6 text-accent mx-auto mb-2" />
+                                        <div className="text-xl font-bold">{stats.uniqueUsers || 0}</div>
+                                        <div className="text-xs text-muted-foreground">Users</div>
                                     </div>
                                     <div className="p-4 rounded-xl glass text-center">
                                         <TrendingUp className="h-6 w-6 text-accent mx-auto mb-2" />
-                                        <div className="text-xl font-bold">$2M+</div>
-                                        <div className="text-xs text-muted-foreground">Rewards Paid</div>
+                                        <div className="text-xl font-bold">{stats.totalStaked.toFixed(0)}</div>
+                                        <div className="text-xs text-muted-foreground">GOAL Staked</div>
                                     </div>
                                 </div>
                             </Card>

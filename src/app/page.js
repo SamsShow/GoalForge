@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAccount, useContractRead } from 'wagmi';
 import Layout from '@/components/layout/Layout';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowRight, Target, Shield, Trophy, Users, CheckCircle, LayoutDashboard, Zap, Sparkles, TrendingUp, Lock } from 'lucide-react';
@@ -382,9 +383,14 @@ export default function Home() {
                     <div className="grid md:grid-cols-4 gap-8">
                         <div className="space-y-4">
                             <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                                    <Zap className="h-4 w-4 text-background" />
-                                </div>
+                                <Image
+                                    src="/logosvg.svg"
+                                    alt="STICKIT logo"
+                                    width={32}
+                                    height={32}
+                                    className="h-8 w-8"
+                                    priority
+                                />
                                 <span className="text-xl font-bold">
                                     <span className="text-gradient">STICK</span>
                                     <span className="text-foreground">IT</span>
@@ -502,19 +508,19 @@ const testimonials = [
     {
         name: "Alex Thompson",
         title: "Fitness Enthusiast",
-        avatar: "🏋️",
+        avatar: "AT",
         quote: "STICKIT changed everything. Having real money on the line kept me accountable when motivation faded."
     },
     {
         name: "Sarah Chen",
         title: "Entrepreneur",
-        avatar: "🚀",
+        avatar: "SC",
         quote: "The community aspect is incredible. Knowing others are cheering you on makes all the difference."
     },
     {
         name: "Michael Roberts",
         title: "Developer",
-        avatar: "💻",
+        avatar: "MR",
         quote: "Finally, a goal app that actually works. The blockchain verification adds a layer of trust I've never seen before."
     }
 ];

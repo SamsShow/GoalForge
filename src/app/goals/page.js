@@ -72,7 +72,7 @@ export default function Goals() {
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Stake</span>
-                                        <span className="font-medium">{ethers.formatEther(goal.stake)} AVAX</span>
+                                        <span className="font-medium">{ethers.formatEther(goal.stake)} GOAL</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">End Date</span>
@@ -84,13 +84,13 @@ export default function Goals() {
                             </CardContent>
                             {!goal.verified && new Date() >= new Date(Number(goal.endDate) * 1000) && (
                                 <CardFooter className="gap-2">
-                                    <Button 
+                                    <Button
                                         onClick={() => verifyGoal({ args: [address, index] })}
                                         className="w-full"
                                     >
                                         Verify Success
                                     </Button>
-                                    <Button 
+                                    <Button
                                         onClick={() => failGoal({ args: [address, index] })}
                                         variant="destructive"
                                         className="w-full"

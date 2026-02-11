@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { CheckCircle2, Flame, Heart, Hourglass, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { contractAddress } from '@/config/contractAddress';
@@ -24,7 +24,7 @@ export function HabitCard({ habit, index }) {
 
     useEffect(() => {
         if (isSuccess) {
-            toast.success("Task completed successfully! 🎉");
+            toast.success("Task completed successfully.");
             setIsLoading(false);
         }
     }, [isSuccess]);
@@ -118,13 +118,17 @@ export function HabitCard({ habit, index }) {
                     <div className="grid grid-cols-3 gap-2">
                         <div className="p-2 rounded-lg bg-[#2a2a2a] border border-[#333]">
                             <div className="text-xs text-gray-400 mb-1">Lives</div>
-                            <div className="text-sm">{'❤️'.repeat(livesLeft)}</div>
+                            <div className="text-sm flex items-center gap-1">
+                                {Array.from({ length: Math.min(livesLeft, 5) }).map((_, lifeIndex) => (
+                                    <Heart key={lifeIndex} className="h-3.5 w-3.5 text-rose-500 fill-current" />
+                                ))}
+                            </div>
                         </div>
                         <div className="p-2 rounded-lg bg-[#2a2a2a] border border-[#333]">
                             <div className="text-xs text-gray-400 mb-1">Streak</div>
                             <div className="text-sm flex items-center gap-1">
                                 <span>{currentStreak}</span>
-                                <span className="text-amber-500">🔥</span>
+                                <Flame className="h-3.5 w-3.5 text-amber-500" />
                             </div>
                         </div>
                         <div className="p-2 rounded-lg bg-[#2a2a2a] border border-[#333]">
@@ -145,9 +149,15 @@ export function HabitCard({ habit, index }) {
                                 {isPending ? "Confirm in Wallet..." : "Confirming..."}
                             </>
                         ) : habit.completed ? (
-                            "Goal Completed ✅"
+                            <span className="inline-flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4" />
+                                Goal Completed
+                            </span>
                         ) : isExpired ? (
-                            "Goal Expired ⌛"
+                            <span className="inline-flex items-center gap-2">
+                                <Hourglass className="h-4 w-4" />
+                                Goal Expired
+                            </span>
                         ) : (
                             "Complete Today's Task"
                         )}

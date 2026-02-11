@@ -23,7 +23,7 @@ import { contractAddress } from "@/config/contractAddress";
 import abi from "@/config/abi.json";
 import { toast } from "sonner";
 import { useRouter } from 'next/navigation';
-import { CheckCircle, Loader2, ArrowLeft, ArrowRight } from "lucide-react";
+import { CheckCircle, Loader2, ArrowLeft, ArrowRight, CalendarDays, Heart, Gem, UserRound } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const slideVariants = {
@@ -48,7 +48,7 @@ const StepContent = ({ step, formData, setFormData }) => {
     1: {
       title: "Duration",
       description: "Choose how many days you want to commit to this habit",
-      icon: "📅",
+      icon: <CalendarDays className="h-6 w-6 text-primary" />,
       input: (
         <Input
           type="number"
@@ -63,7 +63,7 @@ const StepContent = ({ step, formData, setFormData }) => {
     2: {
       title: "Lives",
       description: "Choose how many lives you want (max 5)",
-      icon: "❤️",
+      icon: <Heart className="h-6 w-6 text-rose-500" />,
       input: (
         <Input
           type="number"
@@ -79,7 +79,7 @@ const StepContent = ({ step, formData, setFormData }) => {
     3: {
       title: "Stake",
       description: "Set your stake amount in ETH",
-      icon: "💎",
+      icon: <Gem className="h-6 w-6 text-primary" />,
       input: (
         <Input
           type="number"
@@ -95,7 +95,7 @@ const StepContent = ({ step, formData, setFormData }) => {
     4: {
       title: "Username",
       description: "Choose your display name",
-      icon: "👤",
+      icon: <UserRound className="h-6 w-6 text-primary" />,
       input: (
         <Input
           type="text"
@@ -119,7 +119,7 @@ const StepContent = ({ step, formData, setFormData }) => {
     >
       <div className="flex items-center gap-3">
         <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent backdrop-blur-md border border-white/10">
-          <span className="text-2xl">{content.icon}</span>
+          {content.icon}
         </div>
         <div>
           <h3 className="text-lg font-semibold bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent">
@@ -177,7 +177,7 @@ export function HabitModal({ isOpen, onClose, habitType, title, description, ico
         try {
           await waitForTransaction({ hash });
           setIsCompleted(true);
-          toast.success("Goal created successfully! 🎉");
+          toast.success("Goal created successfully.");
           
           setTimeout(() => {
             onClose();
@@ -284,7 +284,7 @@ export function HabitModal({ isOpen, onClose, habitType, title, description, ico
                   transition={{ type: "spring", stiffness: 200 }}
                   className="bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent"
                 >
-                  Goal Created Successfully! 🎉
+                  Goal Created Successfully
                 </motion.div>
               ) : (
                 <div className="flex items-center gap-2">

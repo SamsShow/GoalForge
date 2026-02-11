@@ -7,13 +7,13 @@ export function cn(...inputs) {
 
 export function getHabitIcon(type) {
     const icons = {
-        0: '💻',
-        1: '🧮',
-        2: '💪',
-        3: '🧘',
-        4: '🏃'
+        0: '</>',
+        1: '{}',
+        2: '▲',
+        3: '◉',
+        4: '»'
     };
-    return icons[type] || '🎯';
+    return icons[type] || '•';
 }
 
 export const fadeInUp = {

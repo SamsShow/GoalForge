@@ -1,9 +1,10 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, Bell, Menu, LayoutDashboard, Users, Zap } from 'lucide-react';
+import { Search, Plus, Bell, Menu, LayoutDashboard, Users } from 'lucide-react';
 
 export default function Navbar() {
     return (
@@ -12,12 +13,14 @@ export default function Navbar() {
                 <div className="flex h-16 items-center justify-between">
                     <div className="flex items-center gap-8">
                         <Link href="/" className="flex items-center gap-2 group">
-                            <div className="relative">
-                                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center group-hover:scale-105 transition-transform">
-                                    <Zap className="h-5 w-5 text-background" />
-                                </div>
-                                <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-primary to-accent blur-lg opacity-40 group-hover:opacity-60 transition-opacity" />
-                            </div>
+                            <Image
+                                src="/logosvg.svg"
+                                alt="STICKIT logo"
+                                width={36}
+                                height={36}
+                                className="h-9 w-9 group-hover:scale-105 transition-transform"
+                                priority
+                            />
                             <span className="text-xl font-bold tracking-tight">
                                 <span className="text-gradient">STICK</span>
                                 <span className="text-foreground">IT</span>

@@ -25,7 +25,7 @@ export function OnboardingModal({ isOpen, onClose }) {
                 try {
                     await waitForTransaction({ hash });
                     setIsCompleted(true);
-                    toast.success('Welcome to STICKIT! You received 100 STICK tokens 🎉');
+                    toast.success('Welcome to STICKIT! You received 100 STICK tokens.');
                     
                     setTimeout(() => {
                         onClose();
@@ -106,7 +106,7 @@ export function OnboardingModal({ isOpen, onClose }) {
                             <div className="w-20 h-20 rounded-full bg-primary/20 border border-primary/30 mx-auto mb-6 flex items-center justify-center animate-pulse">
                                 <CheckCircle className="h-10 w-10 text-primary" />
                             </div>
-                            <h3 className="text-2xl font-bold mb-2">You&apos;re All Set! 🎉</h3>
+                            <h3 className="text-2xl font-bold mb-2">You&apos;re All Set!</h3>
                             <p className="text-muted-foreground">
                                 Your STICK tokens are ready. Let&apos;s make some goals stick!
                             </p>

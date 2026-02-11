@@ -6,41 +6,35 @@ import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { contractAddress } from '@/config/contractAddress';
 import abi from '@/config/abi.json';
-import { Activity, Trophy, Target, Medal, Plus, Zap } from 'lucide-react';
+import { Activity, Trophy, Target, Medal, Plus, Zap, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { HabitCard } from '@/components/dashboard/HabitCard';
 import { BrowseHabits } from '@/components/habits/BrowseHabits';
 import { NavigationTabs } from '@/components/dashboard/NavigationTabs';
-import { fadeInUp, staggerContainer } from '@/lib/utils';
-import nft1 from "@/nfts/dsa.jpg";
-
-const dummyNFT = {
-  id: 1,
-  name: "Elite Coder #1",
-  image: nft1, 
-  description: "Awarded for achievement in coding challenges and consistent goal completion",
-  attributes: [
-    { trait_type: "Class", value: "Elite Developer" },
-    { trait_type: "Achievement Type", value: "Coding Master" },
-    { trait_type: "Streak", value: "5 Days" },
-    { trait_type: "Rarity", value: "Rare" }
-  ],
-  dateEarned: "2024-03-15"
-};
+import { Calendar } from '@/components/dashboard/Calendar';
+import { RecentTransactions } from '@/components/dashboard/RecentTransactions';
+import { fadeInUp, staggerContainer, getHabitIcon } from '@/lib/utils';
 
 export default function Dashboard() {
     const { address } = useAccount();
     const [activeHabits, setActiveHabits] = useState([]);
     const [completedHabits, setCompletedHabits] = useState([]);
     const [activeTab, setActiveTab] = useState('active');
-    const [nfts, setNfts] = useState([]);
-
     const { data: goals, isLoading: isLoadingGoals } = useContractRead({
         address: contractAddress,
         abi,
         functionName: 'getUserGoals',
+        args: [address],
+        enabled: Boolean(address),
+        watch: true,
+    });
+
+    const { data: nftTokenIds } = useContractRead({
+        address: contractAddress,
+        abi,
+        functionName: 'getUserNFTs',
         args: [address],
         enabled: Boolean(address),
         watch: true,
@@ -56,7 +50,7 @@ export default function Dashboard() {
     if (!address) {
         return (
             <Layout>
-                <motion.div 
+                <motion.div
                     className="flex items-center justify-center min-h-[60vh]"
                     {...fadeInUp}
                 >
@@ -84,19 +78,19 @@ export default function Dashboard() {
                             className="flex items-center gap-4"
                         >
                             <div className="p-3 rounded-xl glass border-primary/20">
-                                <span role="img" aria-label="wave" className="text-2xl">👋</span>
+                                <Zap className="h-6 w-6 text-primary" />
                             </div>
                             <div>
                                 <h1 className="text-2xl font-bold">Welcome back!</h1>
                                 <p className="text-muted-foreground font-mono text-sm">{address.slice(0, 6)}...{address.slice(-4)}</p>
                             </div>
                         </motion.div>
-                        
+
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                         >
-                            <Button 
+                            <Button
                                 onClick={() => setActiveTab('browse')}
                                 className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium gap-2"
                             >
@@ -107,7 +101,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Stats Grid */}
-                    <motion.div 
+                    <motion.div
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
                         variants={staggerContainer}
                         initial="initial"
@@ -133,7 +127,7 @@ export default function Dashboard() {
                         />
                         <StatCard
                             title="NFTs Earned"
-                            value={(nfts || []).length}
+                            value={(nftTokenIds || []).length}
                             icon={<Medal className="w-5 h-5" />}
                             trend="Rare collector"
                         />
@@ -157,7 +151,7 @@ export default function Dashboard() {
                                     ) : activeHabits.length === 0 ? (
                                         <EmptyState setActiveTab={setActiveTab} />
                                     ) : (
-                                        <motion.div 
+                                        <motion.div
                                             className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
                                             variants={staggerContainer}
                                             initial="initial"
@@ -171,7 +165,7 @@ export default function Dashboard() {
                                 )}
 
                                 {activeTab === 'completed' && (
-                                    <motion.div 
+                                    <motion.div
                                         className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
                                         variants={staggerContainer}
                                         initial="initial"
@@ -184,16 +178,34 @@ export default function Dashboard() {
                                 )}
 
                                 {activeTab === 'nfts' && (
-                                    <motion.div 
+                                    <motion.div
                                         className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
                                         variants={staggerContainer}
                                         initial="initial"
                                         animate="animate"
                                     >
-                                        {nfts?.map((tokenId, index) => (
-                                            <NFTCard key={index} tokenId={tokenId} />
-                                        ))}
+                                        {nftTokenIds && nftTokenIds.length > 0 ? (
+                                            nftTokenIds.map((tokenId, index) => (
+                                                <NFTCard
+                                                    key={index}
+                                                    tokenId={tokenId}
+                                                    habit={completedHabits[index]}
+                                                />
+                                            ))
+                                        ) : (
+                                            <Card className="p-8 glass text-center col-span-full">
+                                                <p className="text-muted-foreground text-sm">Complete a goal to earn your first achievement NFT.</p>
+                                            </Card>
+                                        )}
                                     </motion.div>
+                                )}
+
+                                {activeTab === 'calendar' && (
+                                    <Calendar habits={goals || []} />
+                                )}
+
+                                {activeTab === 'activity' && (
+                                    <RecentTransactions habits={goals || []} />
                                 )}
 
                                 {activeTab === 'browse' && <BrowseHabits />}
@@ -201,43 +213,7 @@ export default function Dashboard() {
                         </AnimatePresence>
                     </div>
 
-                    {/* NFT Achievements Section */}
-                    <section className="mt-8">
-                        <h2 className="text-2xl font-bold mb-6">Achievement NFTs</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <Card className="overflow-hidden glass glass-hover">
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-lg">{dummyNFT.name}</CardTitle>
-                                    <CardDescription>Earned on {new Date(dummyNFT.dateEarned).toLocaleDateString()}</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="relative aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-primary/20 to-accent/10">
-                                        <img 
-                                            src={dummyNFT.image} 
-                                            alt={dummyNFT.name}
-                                            className="object-contain w-full h-full"
-                                        />
-                                        <div className="absolute top-3 right-3">
-                                            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground">
-                                                {dummyNFT.attributes.find(a => a.trait_type === "Rarity")?.value}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-3">
-                                        <p className="text-sm text-muted-foreground">{dummyNFT.description}</p>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {dummyNFT.attributes.map((attr, idx) => (
-                                                <div key={idx} className="glass rounded-lg p-3">
-                                                    <p className="text-xs text-muted-foreground">{attr.trait_type}</p>
-                                                    <p className="text-sm font-medium">{attr.value}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </section>
+
                 </div>
             </div>
         </Layout>
@@ -246,7 +222,7 @@ export default function Dashboard() {
 
 function LoadingGrid() {
     return (
-        <motion.div 
+        <motion.div
             className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
             variants={staggerContainer}
             initial="initial"
@@ -271,7 +247,7 @@ function EmptyState({ setActiveTab }) {
     return (
         <motion.div {...fadeInUp}>
             <Card className="p-10 glass text-center max-w-lg mx-auto">
-                <motion.div 
+                <motion.div
                     className="p-4 rounded-2xl glass border-primary/20 w-20 h-20 mx-auto mb-6 flex items-center justify-center"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -279,7 +255,7 @@ function EmptyState({ setActiveTab }) {
                 >
                     <Target className="h-10 w-10 text-primary" />
                 </motion.div>
-                <motion.h3 
+                <motion.h3
                     className="text-xl font-semibold mb-2"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -287,7 +263,7 @@ function EmptyState({ setActiveTab }) {
                 >
                     No Active Goals Yet
                 </motion.h3>
-                <motion.p 
+                <motion.p
                     className="text-muted-foreground mb-6"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -300,7 +276,7 @@ function EmptyState({ setActiveTab }) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
                 >
-                    <Button 
+                    <Button
                         onClick={() => setActiveTab('browse')}
                         className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                     >
@@ -312,18 +288,43 @@ function EmptyState({ setActiveTab }) {
     );
 }
 
-function NFTCard({ tokenId }) {
+function NFTCard({ tokenId, habit }) {
+    const habitType = habit ? Number(habit.habitType) : 0;
+    const habitNames = ['Coding Master', 'DSA Champion', 'Gym Warrior', 'Yoga Guru', 'Running Legend'];
+    const rarity = habit ? (Number(habit.totalDays) >= 30 ? 'Legendary' : Number(habit.totalDays) >= 14 ? 'Epic' : Number(habit.totalDays) >= 7 ? 'Rare' : 'Uncommon') : 'Common';
+
     return (
         <motion.div variants={fadeInUp}>
-            <Card className="p-4 glass glass-hover group">
-                <motion.div 
-                    className="aspect-square rounded-xl glass flex items-center justify-center mb-3"
+            <Card className="p-4 glass glass-hover group overflow-hidden">
+                <motion.div
+                    className="aspect-square rounded-xl glass flex flex-col items-center justify-center mb-3 relative bg-gradient-to-br from-primary/10 via-accent/5 to-transparent"
                     whileHover={{ scale: 1.02 }}
                     transition={{ type: "spring", stiffness: 300 }}
                 >
-                    <span className="text-5xl">🏆</span>
+                    <span className="text-5xl mb-2">{getHabitIcon(habitType)}</span>
+                    <span className="text-lg font-bold">{habitNames[habitType] || 'Achievement'}</span>
+                    <div className="absolute top-2 right-2">
+                        <span className="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground">
+                            {rarity}
+                        </span>
+                    </div>
                 </motion.div>
                 <p className="text-center text-sm text-muted-foreground">Achievement #{tokenId.toString()}</p>
+                {habit && (
+                    <div className="mt-2 grid grid-cols-2 gap-1.5">
+                        <div className="glass rounded-md p-2 text-center">
+                            <p className="text-[10px] text-muted-foreground">Streak</p>
+                            <p className="text-xs font-medium inline-flex items-center gap-1">
+                                {Number(habit.currentStreak)} days
+                                <Flame className="h-3 w-3 text-amber-500" />
+                            </p>
+                        </div>
+                        <div className="glass rounded-md p-2 text-center">
+                            <p className="text-[10px] text-muted-foreground">Staked</p>
+                            <p className="text-xs font-medium">{(Number(habit.stake) / 1e18).toFixed(1)} GOAL</p>
+                        </div>
+                    </div>
+                )}
             </Card>
         </motion.div>
     );

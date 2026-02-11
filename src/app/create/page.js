@@ -31,11 +31,11 @@ import { Loader2, Target, Calendar, Coins, User, FileText, Zap } from "lucide-re
 import { motion } from "framer-motion";
 
 const HABIT_TYPES = [
-  { value: "0", label: "Coding - Daily GitHub Contributions", icon: "💻" },
-  { value: "1", label: "DSA - Daily LeetCode Problems", icon: "🧮" },
-  { value: "2", label: "Gym - Daily Workout Session", icon: "💪" },
-  { value: "3", label: "Yoga - Daily Practice", icon: "🧘" },
-  { value: "4", label: "Running - Daily Exercise", icon: "🏃" },
+  { value: "0", label: "Coding - Daily GitHub Contributions", icon: "</>" },
+  { value: "1", label: "DSA - Daily LeetCode Problems", icon: "{}" },
+  { value: "2", label: "Gym - Daily Workout Session", icon: "▲" },
+  { value: "3", label: "Yoga - Daily Practice", icon: "◉" },
+  { value: "4", label: "Running - Daily Exercise", icon: "»" },
 ];
 
 export default function CreateGoal() {
@@ -59,7 +59,7 @@ export default function CreateGoal() {
 
         try {
           await waitForTransaction({ hash });
-          toast.success("Goal created successfully! 🎉");
+          toast.success("Goal created successfully.");
           router.push("/dashboard");
         } catch (error) {
           console.error("Transaction failed:", error);
@@ -174,7 +174,7 @@ export default function CreateGoal() {
                   Define what you want to achieve and how much you&apos;re willing to stake
                 </CardDescription>
               </CardHeader>
-              
+
               <CardContent className="space-y-6">
                 {/* Goal Type */}
                 <div className="space-y-2">
@@ -241,7 +241,7 @@ export default function CreateGoal() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium flex items-center gap-2">
                     <Coins className="h-4 w-4 text-muted-foreground" />
-                    Stake Amount (AVAX)
+                    Stake Amount (GOAL)
                   </label>
                   <Input
                     type="number"
@@ -285,9 +285,9 @@ export default function CreateGoal() {
               </CardContent>
 
               <CardFooter className="pt-2">
-                <Button 
-                  type="submit" 
-                  disabled={isLoading} 
+                <Button
+                  type="submit"
+                  disabled={isLoading}
                   className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base"
                 >
                   {isLoading ? (
@@ -315,7 +315,7 @@ export default function CreateGoal() {
               <div className="space-y-1">
                 <h4 className="font-medium">How Staking Works</h4>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Your staked tokens are locked in a smart contract. Complete your goal to get your stake back plus bonus rewards. 
+                  Your staked tokens are locked in a smart contract. Complete your goal to get your stake back plus bonus rewards.
                   Miss your deadline? Your stake helps fund the reward pool for successful achievers.
                 </p>
               </div>

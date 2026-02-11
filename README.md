@@ -18,7 +18,7 @@ STICKIT combines blockchain technology with proven accountability mechanisms to 
 ## Tech Stack
 
 - **Frontend**: Next.js 15, React 19, Tailwind CSS
-- **Blockchain**: Avalanche (Fuji Testnet)
+- **Blockchain**: Base (Sepolia Testnet)
 - **Web3**: wagmi, viem, RainbowKit
 - **Animations**: Framer Motion
 

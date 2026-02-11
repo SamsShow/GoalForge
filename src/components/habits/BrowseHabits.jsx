@@ -10,35 +10,35 @@ const HABIT_TYPES = [
         id: 0,
         title: "Level Up Your Coding Skills!",
         description: "Make one GitHub contribution daily",
-        icon: "💻",
+        icon: "</>",
         gradient: "from-[#0d1117] to-[#161b22]"
     },
     {
         id: 1,
         title: "Master DSA Skills",
         description: "Solve one LeetCode problem daily",
-        icon: "🧮",
+        icon: "{}",
         gradient: "from-[#1a1625] to-[#231c31]"
     },
     {
         id: 2,
         title: "Gym Training Goal",
         description: "Complete daily workout sessions",
-        icon: "💪",
+        icon: "▲",
         gradient: "from-[#1a1516] to-[#231c1d]"
     },
     {
         id: 3,
         title: "Daily Yoga Practice",
         description: "Complete one yoga session daily",
-        icon: "🧘",
+        icon: "◉",
         gradient: "from-[#151a16] to-[#1c231d]"
     },
     {
         id: 4,
         title: "Running Challenge",
         description: "Achieve your daily running goals",
-        icon: "🏃",
+        icon: "»",
         gradient: "from-[#1a1915] to-[#23211c]"
     }
 ];
