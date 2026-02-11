@@ -224,7 +224,7 @@ export function ProofSubmissionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] overflow-hidden bg-black/40 backdrop-blur-xl border-white/10">
+      <DialogContent className="sm:max-w-[580px] overflow-y-auto max-h-[90vh] bg-black/40 backdrop-blur-xl border-white/10">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-500/5 to-blue-500/10 opacity-60" />
         <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-white/0 to-transparent" />
 
@@ -263,10 +263,10 @@ export function ProofSubmissionModal({
             )}
 
             {needsFitnessTracker(habitType) && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-[#2a2a2a] border border-[#333]">
-                <Activity className="h-4 w-4 text-green-400/70" />
-                <div className="flex-1">
-                  <div className="text-sm text-white/70">
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-[#2a2a2a] border border-[#333]">
+                <Activity className="h-4 w-4 text-green-400/70 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-white/70 break-words">
                     Google Fit data will be checked if connected. Otherwise, describe your activity below.
                   </div>
                   {fitnessStatus?.configured === false && (
@@ -295,9 +295,9 @@ export function ProofSubmissionModal({
             )}
 
             {/* Hint */}
-            <div className="text-xs text-white/40 italic">
+            <p className="text-xs text-white/40 italic break-words">
               {getProofHint(habitType)}
-            </div>
+            </p>
 
             {/* Proof input */}
             <div className="space-y-2">
@@ -330,15 +330,15 @@ export function ProofSubmissionModal({
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className="flex items-center gap-2 p-2 rounded-lg bg-[#1a1a1a] border border-[#333]"
+                        className="flex items-start gap-2 p-2 rounded-lg bg-[#1a1a1a] border border-[#333]"
                       >
-                        <span className="text-white/50">
+                        <span className="text-white/50 shrink-0">
                           {getStepIcon(step)}
                         </span>
-                        <span className="text-sm text-white/70 flex-1 truncate">
+                        <span className="text-sm text-white/70 flex-1 min-w-0 break-words">
                           {step.label}
                         </span>
-                        {getStepStatusIcon(step.status)}
+                        <span className="shrink-0">{getStepStatusIcon(step.status)}</span>
                       </motion.div>
                     ))}
                   </div>
@@ -360,7 +360,7 @@ export function ProofSubmissionModal({
                       Verified!
                     </span>
                   </div>
-                  <p className="text-sm text-green-300/80">
+                  <p className="text-sm text-green-300/80 break-words">
                     {verificationResult?.summary}
                   </p>
                   {verificationResult?.llm?.confidence && (
@@ -393,7 +393,7 @@ export function ProofSubmissionModal({
                       Not Verified
                     </span>
                   </div>
-                  <p className="text-sm text-red-300/80">
+                  <p className="text-sm text-red-300/80 break-words">
                     {verificationResult?.summary}
                   </p>
                   <p className="text-xs text-red-300/50 mt-1">
@@ -404,14 +404,14 @@ export function ProofSubmissionModal({
             </AnimatePresence>
           </div>
 
-          <DialogFooter className="mt-6 flex gap-2">
+          <DialogFooter className="mt-6 flex flex-col-reverse sm:flex-row gap-2 sm:gap-2">
             {verificationState === VERIFICATION_STATES.VERIFIED ? (
               <Button
                 onClick={handleProceedWithCheckIn}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shrink-0"
               >
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Complete Check-In on Chain
+                <CheckCircle className="mr-2 h-4 w-4 shrink-0" />
+                <span>Complete Check-In on Chain</span>
               </Button>
             ) : (
               <>
@@ -419,26 +419,26 @@ export function ProofSubmissionModal({
                   variant="outline"
                   onClick={onClose}
                   disabled={isLoading}
-                  className="w-full bg-white/5 hover:bg-white/10 border-white/10"
+                  className="w-full sm:flex-1 bg-white/5 hover:bg-white/10 border-white/10 shrink-0"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSubmitProof}
                   disabled={isLoading || (!proofText.trim() && !isAutoVerifiable(habitType))}
-                  className="w-full bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:to-primary text-white"
+                  className="w-full sm:flex-1 bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:to-primary text-white shrink-0 min-w-0"
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Verifying...
+                      <Loader2 className="mr-2 h-4 w-4 shrink-0 animate-spin" />
+                      <span>Verifying...</span>
                     </>
                   ) : verificationState === VERIFICATION_STATES.FAILED ? (
-                    "Retry Verification"
+                    <span>Retry Verification</span>
                   ) : (
                     <>
-                      <Shield className="mr-2 h-4 w-4" />
-                      Verify & Complete
+                      <Shield className="mr-2 h-4 w-4 shrink-0" />
+                      <span>Verify & Complete</span>
                     </>
                   )}
                 </Button>
