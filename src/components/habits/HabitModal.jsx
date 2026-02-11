@@ -16,8 +16,8 @@ import {
   useWriteContract,
   useAccount,
   useContractRead,
+  useWaitForTransactionReceipt,
 } from "wagmi";
-import { waitForTransaction } from '@wagmi/core';
 import { parseEther } from "viem";
 import { contractAddress } from "@/config/contractAddress";
 import abi from "@/config/abi.json";
@@ -43,7 +43,7 @@ const slideVariants = {
   })
 };
 
-const StepContent = ({ step, formData, setFormData }) => {
+const StepContent = ({ step, formData, setFormData, habitType }) => {
   const stepContents = {
     1: {
       title: "Duration",
@@ -94,14 +94,16 @@ const StepContent = ({ step, formData, setFormData }) => {
     },
     4: {
       title: "Username",
-      description: "Choose your display name",
+      description: habitType === 0 || habitType === 1
+        ? "Enter your GitHub username (used for automatic progress verification)"
+        : "Choose your display name",
       icon: <UserRound className="h-6 w-6 text-primary" />,
       input: (
         <Input
           type="text"
           value={formData.username}
           onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-          placeholder="Enter your username"
+          placeholder={habitType === 0 || habitType === 1 ? "Enter your GitHub username" : "Enter your username"}
           className="bg-black/20 border-white/10 focus:border-primary/50 backdrop-blur-md placeholder:text-white/30"
         />
       )
@@ -169,24 +171,10 @@ export function HabitModal({ isOpen, onClose, habitType, title, description, ico
     }
   }, [error]);
 
-  const { writeContract } = useWriteContract({
+  const { writeContract, data: hash, isPending } = useWriteContract({
     mutation: {
-      onSuccess: async (hash) => {
-        toast.success("Creating your goal...");
-        
-        try {
-          await waitForTransaction({ hash });
-          setIsCompleted(true);
-          toast.success("Goal created successfully.");
-          
-          setTimeout(() => {
-            onClose();
-            window.location.reload();
-          }, 2000);
-        } catch (error) {
-          console.error("Transaction failed:", error);
-          toast.error("Failed to create goal: " + error.message);
-        }
+      onSuccess: () => {
+        toast.success("Transaction submitted. Confirming...");
       },
       onError: (error) => {
         console.error("Contract write error:", error);
@@ -195,6 +183,31 @@ export function HabitModal({ isOpen, onClose, habitType, title, description, ico
       }
     }
   });
+
+  const { isLoading: isConfirming, isSuccess, isError, error: txError } = useWaitForTransactionReceipt({
+    hash,
+    confirmations: 1,
+  });
+
+  useEffect(() => {
+    if (isSuccess) {
+      setIsCompleted(true);
+      toast.success("Goal created successfully.");
+      const t = setTimeout(() => {
+        onClose();
+        window.location.reload();
+      }, 2000);
+      return () => clearTimeout(t);
+    }
+  }, [isSuccess, onClose]);
+
+  useEffect(() => {
+    if (isError) {
+      console.error("Transaction failed:", txError);
+      toast.error("Failed to create goal: " + (txError?.message || "Transaction reverted"));
+      setIsLoading(false);
+    }
+  }, [isError, txError]);
 
   const handleSubmit = async () => {
     if (!writeContract || !address) {
@@ -359,7 +372,7 @@ export function HabitModal({ isOpen, onClose, habitType, title, description, ico
                       opacity: { duration: 0.2 }
                     }}
                   >
-                    <StepContent step={step} formData={formData} setFormData={setFormData} />
+                    <StepContent step={step} formData={formData} setFormData={setFormData} habitType={habitType} />
                   </motion.div>
                 </AnimatePresence>
               </div>
@@ -368,7 +381,7 @@ export function HabitModal({ isOpen, onClose, habitType, title, description, ico
                 <Button
                   variant="outline"
                   onClick={handleBack}
-                  disabled={step === 1 || isLoading}
+                  disabled={step === 1 || isLoading || isPending || isConfirming}
                   className="w-full bg-white/5 hover:bg-white/10 border-white/10"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
@@ -377,13 +390,13 @@ export function HabitModal({ isOpen, onClose, habitType, title, description, ico
                 {step === 4 ? (
                   <Button
                     onClick={handleSubmit}
-                    disabled={isLoading || !formData.username}
+                    disabled={isLoading || isPending || isConfirming || !formData.username}
                     className="w-full bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:to-primary text-white"
                   >
-                    {isLoading ? (
+                    {isLoading || isPending || isConfirming ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Creating...
+                        {isPending ? "Confirm in Wallet..." : isConfirming ? "Confirming..." : "Creating..."}
                       </>
                     ) : (
                       "Create Goal"
@@ -392,7 +405,7 @@ export function HabitModal({ isOpen, onClose, habitType, title, description, ico
                 ) : (
                   <Button
                     onClick={handleNext}
-                    disabled={isLoading}
+                    disabled={isLoading || isPending || isConfirming}
                     className="w-full bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:to-primary text-white"
                   >
                     Next

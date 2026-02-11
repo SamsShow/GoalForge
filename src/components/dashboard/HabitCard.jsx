@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Flame, Heart, Hourglass, Loader2 } from 'lucide-react';
+import { CheckCircle2, Flame, Heart, Hourglass, Loader2, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { contractAddress } from '@/config/contractAddress';
 import abi from '@/config/abi.json';
 import { toast } from 'sonner';
 import { getHabitIcon } from '@/lib/utils';
+import { ProofSubmissionModal } from '@/components/habits/ProofSubmissionModal';
 
 export function HabitCard({ habit, index }) {
     const progress = Number(habit.progress);
@@ -21,10 +22,11 @@ export function HabitCard({ habit, index }) {
         hash,
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [showProofModal, setShowProofModal] = useState(false);
 
     useEffect(() => {
         if (isSuccess) {
-            toast.success("Task completed successfully.");
+            toast.success("Task verified and completed successfully!");
             setIsLoading(false);
         }
     }, [isSuccess]);
@@ -42,7 +44,8 @@ export function HabitCard({ habit, index }) {
         return true;
     };
 
-    const handleCompleteTask = async () => {
+    // Opens the proof submission modal instead of directly checking in
+    const handleCompleteTask = () => {
         if (!writeContract) {
             toast.error("Please connect your wallet first");
             return;
@@ -52,16 +55,21 @@ export function HabitCard({ habit, index }) {
             return;
         }
 
+        setShowProofModal(true);
+    };
+
+    // Called after successful verification - does the on-chain check-in
+    const handleVerifiedCheckIn = async (habitIndex) => {
         try {
             setIsLoading(true);
             await writeContract({
                 address: contractAddress,
                 abi: abi,
                 functionName: "checkInHabit",
-                args: [BigInt(index), true],
+                args: [BigInt(habitIndex), true],
             });
 
-            toast.success("Transaction submitted...");
+            toast.success("Verified! Transaction submitted...");
             
         } catch (error) {
             console.error("Error completing task:", error);
@@ -159,11 +167,23 @@ export function HabitCard({ habit, index }) {
                                 Goal Expired
                             </span>
                         ) : (
-                            "Complete Today's Task"
+                            <span className="inline-flex items-center gap-2">
+                                <Shield className="h-4 w-4" />
+                                Verify & Complete Task
+                            </span>
                         )}
                     </Button>
                 </div>
             </Card>
+
+            {/* Proof Submission Modal */}
+            <ProofSubmissionModal
+                isOpen={showProofModal}
+                onClose={() => setShowProofModal(false)}
+                habit={habit}
+                habitIndex={index}
+                onVerified={handleVerifiedCheckIn}
+            />
         </motion.div>
     );
 } 

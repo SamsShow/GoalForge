@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAccount, useWriteContract } from "wagmi";
-import { waitForTransaction } from "@wagmi/core";
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseEther } from "viem";
 import Layout from "@/components/layout/Layout";
 import {
@@ -51,20 +50,10 @@ export default function CreateGoal() {
     habitType: "",
   });
 
-  const { writeContract } = useWriteContract({
+  const { writeContract, data: hash, isPending } = useWriteContract({
     mutation: {
-      onSuccess: async (hash) => {
-        console.log("Transaction submitted:", hash);
-        toast.success("Creating your goal...");
-
-        try {
-          await waitForTransaction({ hash });
-          toast.success("Goal created successfully.");
-          router.push("/dashboard");
-        } catch (error) {
-          console.error("Transaction failed:", error);
-          toast.error("Failed to create goal. Please try again.");
-        }
+      onSuccess: () => {
+        toast.success("Transaction submitted. Confirming...");
       },
       onError: (error) => {
         console.error("Contract write error:", error);
@@ -73,6 +62,27 @@ export default function CreateGoal() {
       },
     },
   });
+
+  const { isLoading: isConfirming, isSuccess, isError, error } = useWaitForTransactionReceipt({
+    hash,
+    confirmations: 1,
+  });
+
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success("Goal created successfully.");
+      router.push("/dashboard");
+      setIsLoading(false);
+    }
+  }, [isSuccess, router]);
+
+  useEffect(() => {
+    if (isError) {
+      console.error("Transaction failed:", error);
+      toast.error("Failed to create goal: " + (error?.message || "Transaction reverted"));
+      setIsLoading(false);
+    }
+  }, [isError, error]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -287,13 +297,13 @@ export default function CreateGoal() {
               <CardFooter className="pt-2">
                 <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || isPending || isConfirming}
                   className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base"
                 >
-                  {isLoading ? (
+                  {isLoading || isPending || isConfirming ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Creating Goal...
+                      {isPending ? "Confirm in Wallet..." : isConfirming ? "Confirming..." : "Creating Goal..."}
                     </>
                   ) : (
                     <>

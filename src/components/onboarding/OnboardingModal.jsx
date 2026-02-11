@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useWriteContract, useAccount } from 'wagmi';
-import { waitForTransaction } from '@wagmi/core';
+import { useWriteContract, useAccount, useWaitForTransactionReceipt } from 'wagmi';
 import { contractAddress } from '@/config/contractAddress';
 import abi from '@/config/abi.json';
 import { toast } from 'sonner';
@@ -16,25 +15,10 @@ export function OnboardingModal({ isOpen, onClose }) {
     const [isCompleted, setIsCompleted] = useState(false);
     const { address } = useAccount();
 
-    const { writeContract } = useWriteContract({
+    const { writeContract, data: hash, isPending } = useWriteContract({
         mutation: {
-            onSuccess: async (hash) => {
-                console.log('Transaction submitted:', hash);
-                toast.success('Getting your tokens ready...');
-                
-                try {
-                    await waitForTransaction({ hash });
-                    setIsCompleted(true);
-                    toast.success('Welcome to STICKIT! You received 100 STICK tokens.');
-                    
-                    setTimeout(() => {
-                        onClose();
-                        window.location.reload();
-                    }, 2000);
-                } catch (error) {
-                    console.error('Transaction failed:', error);
-                    toast.error('Failed to complete onboarding: ' + error.message);
-                }
+            onSuccess: () => {
+                toast.success('Transaction submitted. Confirming...');
             },
             onError: (error) => {
                 console.error('Contract write error:', error);
@@ -43,6 +27,32 @@ export function OnboardingModal({ isOpen, onClose }) {
             }
         }
     });
+
+    const { isLoading: isConfirming, isSuccess, isError, error } = useWaitForTransactionReceipt({
+        hash,
+        confirmations: 1,
+    });
+
+    useEffect(() => {
+        if (isSuccess) {
+            setIsCompleted(true);
+            toast.success('Welcome to STICKIT! You received 100 STICK tokens.');
+            setIsLoading(false);
+            const t = setTimeout(() => {
+                onClose();
+                window.location.reload();
+            }, 2000);
+            return () => clearTimeout(t);
+        }
+    }, [isSuccess, onClose]);
+
+    useEffect(() => {
+        if (isError) {
+            console.error('Transaction failed:', error);
+            toast.error('Failed to complete onboarding: ' + (error?.message || 'Transaction reverted'));
+            setIsLoading(false);
+        }
+    }, [isError, error]);
 
     const handleOnboard = async () => {
         if (!writeContract || !address) {
@@ -145,7 +155,7 @@ export function OnboardingModal({ isOpen, onClose }) {
                                         type="button"
                                         variant="secondary"
                                         onClick={() => setStep(step - 1)}
-                                        disabled={isLoading}
+                                        disabled={isLoading || isPending || isConfirming}
                                         className="px-6"
                                     >
                                         Back
@@ -154,13 +164,13 @@ export function OnboardingModal({ isOpen, onClose }) {
                                 <Button
                                     type="button"
                                     onClick={currentStep.action}
-                                    disabled={isLoading}
+                                    disabled={isLoading || isPending || isConfirming}
                                     className="px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                                 >
-                                    {isLoading ? (
+                                    {isLoading || isPending || isConfirming ? (
                                         <>
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Processing...
+                                            {isPending ? 'Confirm in Wallet...' : isConfirming ? 'Confirming...' : 'Processing...'}
                                         </>
                                     ) : (
                                         <>
