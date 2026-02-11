@@ -1,5 +1,16 @@
 import { NextResponse } from "next/server";
 
+function getBaseUrl(request) {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+
+  const proto = request.headers.get("x-forwarded-proto") || "http";
+  const host =
+    request.headers.get("x-forwarded-host") || request.headers.get("host");
+
+  if (host) return `${proto}://${host}`;
+  return new URL(request.url).origin;
+}
+
 // Google Fit OAuth2 callback handler
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -7,9 +18,12 @@ export async function GET(request) {
   const state = searchParams.get("wallet"); // wallet address passed as state
   const error = searchParams.get("error");
 
+  const baseUrl = getBaseUrl(request);
+  const redirectUri = `${baseUrl}/api/verify/fitness/callback`;
+
   if (error) {
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || ""}/dashboard?fitness_error=${error}`
+      `${baseUrl}/dashboard?fitness_error=${error}`
     );
   }
 
@@ -26,8 +40,7 @@ export async function GET(request) {
         code,
         client_id: process.env.GOOGLE_FIT_CLIENT_ID,
         client_secret: process.env.GOOGLE_FIT_CLIENT_SECRET,
-        redirect_uri:
-          process.env.NEXT_PUBLIC_APP_URL + "/api/verify/fitness/callback",
+        redirect_uri: redirectUri,
         grant_type: "authorization_code",
       }),
     });
@@ -40,7 +53,7 @@ export async function GET(request) {
 
     // Redirect back to dashboard with tokens stored in a secure httpOnly cookie
     const response = NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || ""}/dashboard?fitness_connected=true`
+      `${baseUrl}/dashboard?fitness_connected=true`
     );
 
     response.cookies.set("google_fit_access_token", tokens.access_token, {
@@ -65,7 +78,7 @@ export async function GET(request) {
   } catch (err) {
     console.error("Google Fit callback error:", err);
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || ""}/dashboard?fitness_error=token_exchange_failed`
+      `${baseUrl}/dashboard?fitness_error=token_exchange_failed`
     );
   }
 }

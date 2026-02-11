@@ -3,13 +3,24 @@ import { NextResponse } from "next/server";
 // Google Fit OAuth2 configuration
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_FIT_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_FIT_CLIENT_SECRET;
-const REDIRECT_URI =
-  process.env.NEXT_PUBLIC_APP_URL + "/api/verify/fitness/callback";
+
+function getBaseUrl(request) {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+
+  const proto = request.headers.get("x-forwarded-proto") || "http";
+  const host =
+    request.headers.get("x-forwarded-host") || request.headers.get("host");
+
+  if (host) return `${proto}://${host}`;
+  return new URL(request.url).origin;
+}
 
 // GET: Start OAuth2 flow or fetch fitness data
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const action = searchParams.get("action");
+  const baseUrl = getBaseUrl(request);
+  const redirectUri = `${baseUrl}/api/verify/fitness/callback`;
 
   if (action === "status") {
     const cookies = request.headers.get("cookie") || "";
@@ -50,7 +61,7 @@ export async function GET(request) {
     const authUrl =
       `https://accounts.google.com/o/oauth2/v2/auth?` +
       `client_id=${GOOGLE_CLIENT_ID}` +
-      `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
       `&response_type=code` +
       `&scope=${encodeURIComponent(scopes)}` +
       `&access_type=offline` +
