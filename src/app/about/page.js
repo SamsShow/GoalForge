@@ -327,21 +327,21 @@ const docLinks = [
     {
         title: "System Architecture",
         description: "Frontend, backend, smart contracts, and verification flow.",
-        href: "https://github.com/SamsShow/GoalForge/blob/main/docs/ARCHITECTURE.md"
+        href: "/docs/architecture"
     },
     {
         title: "Software Requirements Specification",
         description: "Functional and non-functional requirements.",
-        href: "https://github.com/SamsShow/GoalForge/blob/main/docs/SRS.md"
+        href: "/docs/srs"
     },
     {
         title: "API Reference",
         description: "REST endpoints and smart contract interfaces.",
-        href: "https://github.com/SamsShow/GoalForge/blob/main/docs/API.md"
+        href: "/docs/api"
     },
     {
         title: "Data Model & ER Diagram",
         description: "On-chain and off-chain data structures.",
-        href: "https://github.com/SamsShow/GoalForge/blob/main/docs/ER_DIAGRAM.md"
+        href: "/docs/er-diagram"
     }
 ];

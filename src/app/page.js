@@ -140,11 +140,7 @@ export default function Home() {
                                     </>
                                 )}
 
-                                <Link
-                                    href="https://github.com/SamsShow/GoalForge/tree/main/docs"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
+                                <Link href="/docs">
                                     <Button
                                         variant="secondary"
                                         size="lg"
@@ -442,7 +438,7 @@ export default function Home() {
                         <p>© 2025–2026 STICKIT. All rights reserved.</p>
                         <div className="flex gap-6">
                             <Link href="/about" className="hover:text-primary transition-colors">About</Link>
-                            <Link href="https://github.com/SamsShow/GoalForge/tree/main/docs" className="hover:text-primary transition-colors">Documentation</Link>
+                            <Link href="/docs" className="hover:text-primary transition-colors">Documentation</Link>
                             <Link href="https://github.com/SamsShow/GoalForge" className="hover:text-primary transition-colors">GitHub</Link>
                         </div>
                     </div>
@@ -558,9 +554,9 @@ const footerLinks = [
     {
         title: "Resources",
         links: [
-            { label: "Documentation", href: "https://github.com/SamsShow/GoalForge/tree/main/docs" },
-            { label: "Architecture", href: "https://github.com/SamsShow/GoalForge/blob/main/docs/ARCHITECTURE.md" },
-            { label: "API Reference", href: "https://github.com/SamsShow/GoalForge/blob/main/docs/API.md" },
+            { label: "Documentation", href: "/docs" },
+            { label: "Architecture", href: "/docs/architecture" },
+            { label: "API Reference", href: "/docs/api" },
             { label: "Community", href: "/community" }
         ]
     },
@@ -568,8 +564,8 @@ const footerLinks = [
         title: "Project",
         links: [
             { label: "About", href: "/about" },
-            { label: "SRS Document", href: "https://github.com/SamsShow/GoalForge/blob/main/docs/SRS.md" },
-            { label: "Data Model", href: "https://github.com/SamsShow/GoalForge/blob/main/docs/ER_DIAGRAM.md" },
+            { label: "SRS Document", href: "/docs/srs" },
+            { label: "Data Model", href: "/docs/er-diagram" },
             { label: "GitHub", href: "https://github.com/SamsShow/GoalForge" }
         ]
     }
