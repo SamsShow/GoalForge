@@ -16,6 +16,7 @@ import { NavigationTabs } from '@/components/dashboard/NavigationTabs';
 import { Calendar } from '@/components/dashboard/Calendar';
 import { RecentTransactions } from '@/components/dashboard/RecentTransactions';
 import { fadeInUp, staggerContainer, getHabitIcon } from '@/lib/utils';
+import { mockActiveHabits, mockCompletedHabits, mockNFTs } from '@/lib/mockData';
 
 export default function Dashboard() {
     const { address } = useAccount();
@@ -41,10 +42,10 @@ export default function Dashboard() {
     });
 
     useEffect(() => {
-        if (goals) {
-            setActiveHabits(goals.filter(goal => !goal.completed && !goal.verified));
-            setCompletedHabits(goals.filter(goal => goal.completed));
-        }
+        const onChainActive = goals ? goals.filter(goal => !goal.completed && !goal.verified) : [];
+        const onChainCompleted = goals ? goals.filter(goal => goal.completed) : [];
+        setActiveHabits([...onChainActive, ...mockActiveHabits]);
+        setCompletedHabits([...onChainCompleted, ...mockCompletedHabits]);
     }, [goals]);
 
     if (!address) {
@@ -184,19 +185,16 @@ export default function Dashboard() {
                                         initial="initial"
                                         animate="animate"
                                     >
-                                        {nftTokenIds && nftTokenIds.length > 0 ? (
-                                            nftTokenIds.map((tokenId, index) => (
-                                                <NFTCard
-                                                    key={index}
-                                                    tokenId={tokenId}
-                                                    habit={completedHabits[index]}
-                                                />
-                                            ))
-                                        ) : (
-                                            <Card className="p-8 glass text-center col-span-full">
-                                                <p className="text-muted-foreground text-sm">Complete a goal to earn your first achievement NFT.</p>
-                                            </Card>
-                                        )}
+                                        {(nftTokenIds || []).map((tokenId, index) => (
+                                            <NFTCard
+                                                key={`chain-${index}`}
+                                                tokenId={tokenId}
+                                                habit={completedHabits[index]}
+                                            />
+                                        ))}
+                                        {mockNFTs.map((nft) => (
+                                            <StepNFTCard key={`mock-${nft.tokenId.toString()}`} nft={nft} />
+                                        ))}
                                     </motion.div>
                                 )}
 
@@ -283,6 +281,42 @@ function EmptyState({ setActiveTab }) {
                         Browse Goals
                     </Button>
                 </motion.div>
+            </Card>
+        </motion.div>
+    );
+}
+
+function StepNFTCard({ nft }) {
+    return (
+        <motion.div variants={fadeInUp}>
+            <Card className="p-4 glass glass-hover group overflow-hidden">
+                <motion.div
+                    className="aspect-square rounded-xl glass flex flex-col items-center justify-center mb-3 relative bg-gradient-to-br from-primary/10 via-accent/5 to-transparent"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                >
+                    <span className="text-5xl mb-2">{nft.icon}</span>
+                    <span className="text-lg font-bold">{nft.name}</span>
+                    <div className="absolute top-2 right-2">
+                        <span className="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground">
+                            {nft.rarity}
+                        </span>
+                    </div>
+                </motion.div>
+                <p className="text-center text-sm text-muted-foreground">Achievement #{nft.tokenId.toString()}</p>
+                <div className="mt-2 grid grid-cols-2 gap-1.5">
+                    <div className="glass rounded-md p-2 text-center">
+                        <p className="text-[10px] text-muted-foreground">Steps</p>
+                        <p className="text-xs font-medium">{nft.steps.toLocaleString()}</p>
+                    </div>
+                    <div className="glass rounded-md p-2 text-center">
+                        <p className="text-[10px] text-muted-foreground">Streak</p>
+                        <p className="text-xs font-medium inline-flex items-center gap-1">
+                            {nft.currentStreak} days
+                            <Flame className="h-3 w-3 text-amber-500" />
+                        </p>
+                    </div>
+                </div>
             </Card>
         </motion.div>
     );
